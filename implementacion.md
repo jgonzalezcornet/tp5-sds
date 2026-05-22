@@ -1,21 +1,30 @@
 # TP5 — Sistema 1: Implementación del motor de simulación (Java)
 
-Motor de simulación del modelo de Kuramoto en Java. Archivo único `motor/KuramotoSim.java` (~6.4 kB, holgadamente bajo el límite de 20 kB del enunciado). Solo motor de simulación: el análisis y la animación se hacen aparte sobre los CSV generados.
+Motor de simulación del modelo de Kuramoto en Java, modularizado en 6 archivos en `motor/` (total ~7.6 kB, holgadamente bajo el límite de 20 kB del enunciado). Sólo motor de simulación: el análisis y la animación se hacen aparte sobre los CSV generados.
 
 ---
 
 ## 1. Estructura del código
 
-Una sola clase `KuramotoSim` con un `main` y métodos auxiliares estáticos. No hay estado global ni dependencias externas (solo `java.io` y `java.util`).
+Seis clases, cada una con una sola responsabilidad. Sin dependencias externas (solo `java.io` y `java.util`).
 
-| Método | Responsabilidad |
-|--------|-----------------|
-| `main(args)` | Parsea CLI, inicializa ωᵢ, θᵢ(0) y Aᵢⱼ, abre el CSV de salida, corre el loop principal. |
-| `parseArgs(args)` | Lee flags `--clave valor` a un `Map<String,String>`. |
-| `i(map, k, def)` / `d(map, k, def)` | Helpers tipados para enteros y dobles con valor por defecto. |
-| `buildNeighbors(N, topo, p, v, rng)` | Construye la lista de vecinos por nodo (`int[][]`) según la topología. |
-| `deriv(theta, omega, nbr, K, out)` | Evalúa el campo vectorial f(θ)ᵢ = ωᵢ + K · Σⱼ∈vec(i) sin(θⱼ − θᵢ). |
-| `writeRow(out, t, theta, dumpPhases)` | Calcula r(t) y escribe una fila del CSV. |
+| Archivo | Clase | Responsabilidad |
+|---------|-------|-----------------|
+| `Config.java` | `Config` (record) | Lleva todos los parámetros + parseo de CLI (`fromArgs`). |
+| `Network.java` | `Network` + enum `Topology` | Construye la lista de vecinos (`int[][]`) según la topología. |
+| `Dynamics.java` | `Dynamics` | Evalúa el campo f(θ)ᵢ = ωᵢ + K · Σⱼ∈vec(i) sin(θⱼ − θᵢ). |
+| `Integrator.java` | `Integrator` | Un paso de RK4. Tiene buffers preasignados (`k1..k4`, `tmp`). |
+| `Output.java` | `Output` | Escribe la cabecera y cada fila del CSV (computa r(t) en cada fila). |
+| `KuramotoSim.java` | `KuramotoSim` | `main`: orquesta inicialización, loop temporal y volcado. |
+
+**Dirección de las dependencias** (sin ciclos):
+
+```
+KuramotoSim  ──┬──→ Config
+               ├──→ Network ──→ Topology
+               ├──→ Integrator ──→ Dynamics
+               └──→ Output ──→ Config
+```
 
 ### Estructura de datos elegida
 
@@ -93,7 +102,7 @@ t,r,theta_0,theta_1,...,theta_{N-1}
 
 ```bash
 cd motor
-javac KuramotoSim.java
+javac *.java   # compila las 6 clases en .class
 
 # Ejemplo 1: red completa, K=0.5, dt=0.01, 100 unidades de tiempo
 java KuramotoSim --N 500 --K 0.5 --topology complete \
@@ -185,7 +194,14 @@ Esto sigue al pie de la letra el requisito de la consigna: *"el análisis y mód
 
 ## 8. Resumen de archivos generados
 
-| Archivo | Contenido |
-|---------|-----------|
-| `motor/KuramotoSim.java` | Código fuente único del motor (~6.4 kB). |
-| `kuramoto.csv` (o el que se indique con `--output`) | Salida CSV: cabecera con parámetros + columnas `t, r, [θ_i...]`. |
+| Archivo | Contenido | Tamaño |
+|---------|-----------|--------|
+| `motor/Config.java` | Record de parámetros + parseo CLI. | ~1.8 kB |
+| `motor/Network.java` | Topología + construcción de vecinos. | ~1.8 kB |
+| `motor/Dynamics.java` | Campo f(θ) de Kuramoto. | ~0.5 kB |
+| `motor/Integrator.java` | RK4 con buffers preasignados. | ~1.0 kB |
+| `motor/Output.java` | CSV: cabecera + filas, computa r(t). | ~1.3 kB |
+| `motor/KuramotoSim.java` | `main`, orquestación. | ~1.2 kB |
+| `kuramoto.csv` (o el que se indique con `--output`) | Salida CSV: cabecera con parámetros + columnas `t, r, [θ_i...]`. | — |
+
+**Total fuente: ~7.6 kB** (límite del enunciado: 20 kB).

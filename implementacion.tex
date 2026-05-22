@@ -36,27 +36,36 @@
 \maketitle
 \vspace{-0.8cm}
 
-Motor de simulación del modelo de Kuramoto en Java, archivo único \texttt{motor/KuramotoSim.java} ($\sim 6.4$ kB, bajo el límite de 20 kB del enunciado). Sólo motor: el análisis y la animación se hacen aparte sobre los CSV generados.
+Motor de simulación del modelo de Kuramoto en Java, modularizado en \textbf{6 archivos} dentro de \texttt{motor/} (total $\sim 7.6$ kB, bajo el límite de 20 kB del enunciado). Sólo motor: el análisis y la animación se hacen aparte sobre los CSV generados.
 
 \section{Estructura del código}
 
-Una sola clase \texttt{KuramotoSim} con un \texttt{main} y métodos auxiliares estáticos. Sin estado global ni dependencias externas (solo \texttt{java.io} y \texttt{java.util}).
+Seis clases, una por archivo, cada una con una sola responsabilidad. Sin dependencias externas (solo \texttt{java.io} y \texttt{java.util}).
 
 \begin{center}
 \renewcommand{\arraystretch}{1.2}
-\begin{tabular}{@{}p{4.8cm} p{10cm}@{}}
+\begin{tabular}{@{}p{3.4cm} p{2.6cm} p{8.6cm}@{}}
 \toprule
-\textbf{Método} & \textbf{Responsabilidad} \\
+\textbf{Archivo} & \textbf{Clase} & \textbf{Responsabilidad} \\
 \midrule
-\texttt{main(args)} & Parsea CLI, inicializa $\omega_i$, $\theta_i(0)$ y $A_{ij}$, abre el CSV, corre el loop principal. \\
-\texttt{parseArgs(args)} & Lee flags \texttt{--clave valor} a un \texttt{Map}. \\
-\texttt{i(...)} / \texttt{d(...)} & Helpers para enteros y dobles con default. \\
-\texttt{buildNeighbors(...)} & Construye la lista de vecinos por nodo (\texttt{int[][]}) según topología. \\
-\texttt{deriv(...)} & Evalúa $f(\theta)_i = \omega_i + K \sum_{j\in\text{vec}(i)} \sin(\theta_j-\theta_i)$. \\
-\texttt{writeRow(...)} & Calcula $r(t)$ y escribe una fila del CSV. \\
+\texttt{Config.java} & \texttt{Config} (record) & Lleva todos los parámetros + parseo de CLI (\texttt{fromArgs}). \\
+\texttt{Network.java} & \texttt{Network} + enum \texttt{Topology} & Construye la lista de vecinos (\texttt{int[][]}) según topología. \\
+\texttt{Dynamics.java} & \texttt{Dynamics} & Evalúa $f(\theta)_i = \omega_i + K\sum_{j\in\text{vec}(i)}\sin(\theta_j-\theta_i)$. \\
+\texttt{Integrator.java} & \texttt{Integrator} & Un paso de RK4. Buffers $\mathbf k_1..\mathbf k_4$, \texttt{tmp} preasignados. \\
+\texttt{Output.java} & \texttt{Output} & Cabecera + filas del CSV (computa $r(t)$ en cada fila). \\
+\texttt{KuramotoSim.java} & \texttt{KuramotoSim} & \texttt{main}: orquesta inicialización, loop y volcado. \\
 \bottomrule
 \end{tabular}
 \end{center}
+
+\subsection*{Dependencias entre módulos (sin ciclos)}
+
+\begin{lstlisting}
+KuramotoSim ---+--> Config
+               +--> Network ---> Topology
+               +--> Integrator ---> Dynamics
+               +--> Output ---> Config
+\end{lstlisting}
 
 \subsection*{Estructura de datos: listas de vecinos}
 
@@ -135,7 +144,7 @@ $r(t)$ se computa dentro del motor en \texttt{writeRow} ($O(N)$ por fila): el po
 
 \begin{lstlisting}[language=bash]
 cd motor
-javac KuramotoSim.java
+javac *.java   # compila las 6 clases en .class
 
 # Red completa, K=0.5
 java KuramotoSim --N 500 --K 0.5 --topology complete \
