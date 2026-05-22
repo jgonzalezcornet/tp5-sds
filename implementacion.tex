@@ -1,0 +1,200 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{array,booktabs,longtable}
+\usepackage{listings}
+\usepackage{hyperref}
+
+\hypersetup{colorlinks=true,urlcolor=blue,linkcolor=black}
+\setlist{itemsep=2pt,topsep=2pt}
+\titlespacing*{\section}{0pt}{10pt}{4pt}
+\titlespacing*{\subsection}{0pt}{8pt}{3pt}
+
+\definecolor{codebg}{rgb}{0.96,0.96,0.96}
+\lstset{
+  basicstyle=\ttfamily\footnotesize,
+  backgroundcolor=\color{codebg},
+  frame=single,
+  framesep=4pt,
+  breaklines=true,
+  columns=fullflexible,
+  showstringspaces=false,
+  literate={ñ}{{\~n}}1 {á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+}
+
+\title{\vspace{-1cm}\textbf{TP5 -- Sistema 1: Implementación del motor de simulación}\\[2pt]\large Kuramoto -- Java}
+\author{Simulación de Sistemas -- 2026Q1}
+\date{}
+
+\begin{document}
+\maketitle
+\vspace{-0.8cm}
+
+Motor de simulación del modelo de Kuramoto en Java, archivo único \texttt{motor/KuramotoSim.java} ($\sim 6.4$ kB, bajo el límite de 20 kB del enunciado). Sólo motor: el análisis y la animación se hacen aparte sobre los CSV generados.
+
+\section{Estructura del código}
+
+Una sola clase \texttt{KuramotoSim} con un \texttt{main} y métodos auxiliares estáticos. Sin estado global ni dependencias externas (solo \texttt{java.io} y \texttt{java.util}).
+
+\begin{center}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}p{4.8cm} p{10cm}@{}}
+\toprule
+\textbf{Método} & \textbf{Responsabilidad} \\
+\midrule
+\texttt{main(args)} & Parsea CLI, inicializa $\omega_i$, $\theta_i(0)$ y $A_{ij}$, abre el CSV, corre el loop principal. \\
+\texttt{parseArgs(args)} & Lee flags \texttt{--clave valor} a un \texttt{Map}. \\
+\texttt{i(...)} / \texttt{d(...)} & Helpers para enteros y dobles con default. \\
+\texttt{buildNeighbors(...)} & Construye la lista de vecinos por nodo (\texttt{int[][]}) según topología. \\
+\texttt{deriv(...)} & Evalúa $f(\theta)_i = \omega_i + K \sum_{j\in\text{vec}(i)} \sin(\theta_j-\theta_i)$. \\
+\texttt{writeRow(...)} & Calcula $r(t)$ y escribe una fila del CSV. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection*{Estructura de datos: listas de vecinos}
+
+En vez de guardar $A_{ij}$ como matriz densa $N\times N$ (250\,000 entradas para $N=500$), guardamos para cada nodo $i$ un \textbf{arreglo de índices de sus vecinos}. Esto: (i) recorre sólo los vecinos reales en \texttt{deriv} (rápido para redes esparsas), (ii) es equivalente para el caso completo, (iii) aprovecha que el grafo no cambia durante la simulación.
+
+\subsection*{Reproducibilidad: dos semillas}
+
+\begin{itemize}
+\item \texttt{--seed}: controla $\omega_i$ y $\theta_i(0)$. Misma semilla $\Rightarrow$ mismas condiciones iniciales \emph{independientemente de la topología}.
+\item \texttt{--netSeed}: controla el sorteo de $A_{ij}$ (sólo \texttt{random}). Default = \texttt{seed}.
+\end{itemize}
+
+Facilita comparar topologías sobre la misma condición inicial y promediar separadamente sobre realizaciones de red y de condiciones iniciales.
+
+\section{Parámetros (CLI)}
+
+Todos parametrizables vía \texttt{--clave valor}.
+
+\subsection*{Parámetros del modelo}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}l l l p{7.7cm}@{}}
+\toprule
+\textbf{Flag} & \textbf{Tipo} & \textbf{Default} & \textbf{Descripción} \\
+\midrule
+\texttt{--N} & int & 500 & Número de osciladores (consigna: $N>500$). \\
+\texttt{--K} & double & 1.0 & Acoplamiento global $K\in[0,1]$. \\
+\texttt{--topology} & string & complete & \texttt{complete}/\texttt{random}/\texttt{ring}. \\
+\texttt{--p} & double & 0.5 & Probabilidad de conexión (sólo \texttt{random}). \\
+\texttt{--v} & int & 1 & Vecindad del anillo (sólo \texttt{ring}), $v\in[1,10]$. \\
+\texttt{--muOmega} & double & 1.0 & Media de la normal para $\omega_i$. \\
+\texttt{--sigmaOmega} & double & 0.1 & Desvío estándar de la normal para $\omega_i$. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection*{Parámetros numéricos y de salida}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}l l l p{7.7cm}@{}}
+\toprule
+\textbf{Flag} & \textbf{Tipo} & \textbf{Default} & \textbf{Descripción} \\
+\midrule
+\texttt{--dt} & double & 0.01 & Paso de integración (fijo). Probar $10^{-x}$, $x\in\{1,\ldots,4\}$. \\
+\texttt{--tSim} & double & 100.0 & Tiempo total simulado. \\
+\texttt{--seed} & long & 42 & Semilla para $\omega_i$ y $\theta_i(0)$. \\
+\texttt{--netSeed} & long & = seed & Semilla para $A_{ij}$ (sólo \texttt{random}). \\
+\texttt{--output} & string & kuramoto.csv & Archivo de salida. \\
+\texttt{--dumpEvery} & int & 1 & Vuelca cada $n$ pasos al CSV. \\
+\texttt{--dumpPhases} & bool & true & Si \texttt{false}, sólo \texttt{t,r} (mucho más liviano). \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Formato del archivo de salida (CSV)}
+
+\begin{lstlisting}
+# N=500 K=1.000000 dt=0.010000 tSim=100.000000 topology=COMPLETE p=0.500000 v=1 muOmega=1.000000 sigmaOmega=0.100000 seed=42 netSeed=42 dumpEvery=1
+t,r,theta_0,theta_1,...,theta_{N-1}
+0.0,0.0763...,1.4234...,3.1415...,...
+0.01,0.0791...,1.4334...,3.1525...,...
+...
+\end{lstlisting}
+
+\begin{itemize}
+\item Primera línea: comentario con todos los parámetros (autodocumenta el archivo).
+\item Segunda línea: nombres de columna.
+\item Filas siguientes: valores. Si \texttt{--dumpPhases false}, sólo \texttt{t} y \texttt{r}.
+\end{itemize}
+
+$r(t)$ se computa dentro del motor en \texttt{writeRow} ($O(N)$ por fila): el postproceso lo lee directo, y \texttt{--dumpPhases false} habilita un modo ``solo $r$'' liviano para los barridos masivos.
+
+\section{Compilación y ejecución}
+
+\begin{lstlisting}[language=bash]
+cd motor
+javac KuramotoSim.java
+
+# Red completa, K=0.5
+java KuramotoSim --N 500 --K 0.5 --topology complete \
+                 --dt 0.01 --tSim 100 \
+                 --seed 42 --output complete_K0.5_seed42.csv \
+                 --dumpEvery 10 --dumpPhases true
+
+# Red aleatoria, K=1, p=0.3, semillas separadas
+java KuramotoSim --N 500 --K 1.0 --topology random --p 0.3 \
+                 --dt 0.01 --tSim 100 \
+                 --seed 42 --netSeed 7 \
+                 --output random_p0.3_K1_s42_n7.csv \
+                 --dumpPhases false
+
+# Red anillo, v=3
+java KuramotoSim --N 500 --K 0.7 --topology ring --v 3 \
+                 --dt 0.01 --tSim 200 \
+                 --seed 42 --output ring_v3_K0.7.csv
+\end{lstlisting}
+
+\section{Algoritmo}
+
+\textbf{Inicialización:}
+\begin{enumerate}
+\item $\omega_i \sim \mathcal{N}(1, 0.1^2)$ con la RNG de \texttt{seed} (vía \texttt{nextGaussian()}).
+\item $\theta_i(0) \sim \mathcal{U}[0, 2\pi)$ con la misma RNG.
+\item Lista de vecinos según topología (con RNG de \texttt{netSeed} si corresponde).
+\end{enumerate}
+
+\textbf{Loop principal -- RK4:} con $f(\theta)_i = \omega_i + K \sum_{j\in\text{vec}(i)} \sin(\theta_j-\theta_i)$,
+
+\begin{align*}
+\mathbf k_1 &= f(\boldsymbol\theta), \quad \mathbf k_2 = f(\boldsymbol\theta + \tfrac{dt}{2}\mathbf k_1), \quad \mathbf k_3 = f(\boldsymbol\theta + \tfrac{dt}{2}\mathbf k_2), \quad \mathbf k_4 = f(\boldsymbol\theta + dt\,\mathbf k_3) \\
+\boldsymbol\theta &\leftarrow \boldsymbol\theta + \tfrac{dt}{6}\bigl(\mathbf k_1 + 2\mathbf k_2 + 2\mathbf k_3 + \mathbf k_4\bigr)
+\end{align*}
+
+El sistema es autónomo; \texttt{deriv} no recibe argumento de tiempo. Los buffers $\mathbf k_1..\mathbf k_4$ y \texttt{tmp} se alocan una sola vez fuera del loop.
+
+\textbf{Cálculo de $r$:}
+\[
+c_x = \frac{1}{N}\sum_j \cos\theta_j, \quad c_y = \frac{1}{N}\sum_j \sin\theta_j, \quad r = \sqrt{c_x^2 + c_y^2}
+\]
+
+\textbf{Construcción de vecinos:}
+\begin{itemize}
+\item \emph{complete:} \texttt{nbr[i] = \{0..N-1\} \textbackslash\ \{i\}}.
+\item \emph{random:} para cada par $(i,j)$ con $i<j$, sortear \texttt{nextDouble() < p}; si sí, agregar $j$ a \texttt{nbr[i]} y $i$ a \texttt{nbr[j]} (red \textbf{no dirigida} por convención: el enunciado no lo exige explícitamente).
+\item \emph{ring:} \texttt{nbr[i] = \{(i-v) mod N, ..., (i+v) mod N\} \textbackslash\ \{i\}} (exactamente $2v$ vecinos). Aritmética modular con \texttt{((i-d) \% N + N) \% N} para manejar negativos en Java.
+\end{itemize}
+
+\section{Lo que el motor \emph{no} hace (a propósito)}
+
+\begin{itemize}
+\item No grafica ni anima.
+\item No calcula $\tau_s$; emite $r(t)$, el umbral y la detección del estacionario van en postproceso.
+\item No promedia sobre realizaciones (ejecutar el motor varias veces con distintas \texttt{--seed}).
+\item No barre $K$, $p$, $v$ automáticamente (cada combinación se corre como proceso separado, fácil de paralelizar con \texttt{xargs -P} o un script).
+\end{itemize}
+
+Esto sigue el requisito del enunciado: \emph{``el análisis y módulo de animación se ejecuta en forma independiente tomando estos archivos de texto como input.''}
+
+\end{document}

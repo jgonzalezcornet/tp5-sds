@@ -1,0 +1,209 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{hyperref}
+
+\hypersetup{colorlinks=true,urlcolor=blue,linkcolor=black}
+\setlist{itemsep=2pt,topsep=2pt}
+\titlespacing*{\section}{0pt}{10pt}{4pt}
+\titlespacing*{\subsection}{0pt}{8pt}{3pt}
+
+\title{\vspace{-1cm}\textbf{TP5 -- Sistema 1: Oscilador de Kuramoto}\\[2pt]\large Resumen teórico y modelo a implementar}
+\author{Simulación de Sistemas -- 2026Q1}
+\date{}
+
+\begin{document}
+\maketitle
+\vspace{-0.8cm}
+
+\section{Contexto neurocientífico}
+
+El cerebro contiene $\sim 10^{11}$ neuronas con $\sim 10^{14}$--$10^{15}$ conexiones sinápticas. Cada neurona es una unidad de procesamiento con \textbf{dendritas} (entrada), \textbf{soma} (procesamiento no lineal) y \textbf{axón} (salida); se comunica con otras a través de \textbf{sinapsis} mediante \textbf{spikes} (pulsos de $\sim 100$ mV, $1$--$2$ ms). Lo central no es la forma del spike sino \emph{cuándo} ocurre \cite{ND-Ch1}.
+
+Muchas neuronas son intrínsecamente oscilantes. Si idealizamos cada tren de spikes como una \textbf{fase} $\theta_i(t) \in [0,2\pi)$ que avanza a frecuencia natural $\omega_i$, podemos preguntar: ¿cuándo se sincroniza el colectivo?
+
+\subsection*{Jerarquía de modelos neuronales}
+
+\begin{enumerate}
+  \item \textbf{Hodgkin--Huxley} (biofísico, $C_m \dot V = I - I_{Na} - I_K - I_L$): realista pero costoso.
+  \item \textbf{FitzHugh--Nagumo} (reducido 2D, $\dot v = v - v^3/3 - w + I,\ \dot w = \epsilon(v+a-bw)$): captura excitabilidad y ciclos límite vía análisis del plano de fase \cite{ND-Ch4}.
+  \item \textbf{Integrate-and-fire} ($\tau \dot V = -V + I$ con reset al umbral).
+  \item \textbf{Kuramoto} (osciladores de fase acoplados): \textbf{este TP}.
+\end{enumerate}
+
+\section{Modelo de Kuramoto}
+
+\subsection*{Ecuación de evolución}
+
+Para $i = 1,\ldots,N$ con $N > 500$:
+\begin{equation}
+\frac{d\theta_i}{dt} \;=\; \omega_i \;+\; K \sum_{j} A_{ij}\, \sin(\theta_j - \theta_i)
+\end{equation}
+
+\begin{itemize}
+  \item $\theta_i \in [0, 2\pi)$: fase de la neurona $i$.
+  \item $\omega_i \sim \mathcal{N}(\mu=1,\ \sigma=0.1)$: frecuencia natural, \emph{fija} en cada realización.
+  \item $K \in [0,1]$: acoplamiento global (parámetro de control).
+  \item $A_{ij}$: matriz de conectividad (topología, $A_{ii}=0$).
+  \item Condición inicial: $\theta_i(0) \sim \mathcal{U}[0, 2\pi)$.
+\end{itemize}
+
+\subsection*{Parámetro de orden}
+
+Mide el grado de sincronización global:
+\begin{equation}
+r(t) \;=\; \left| \frac{1}{N} \sum_j \bigl[\cos\theta_j,\ \sin\theta_j\bigr] \right|
+\;=\; \left| \frac{1}{N} \sum_j e^{i\theta_j} \right|
+\end{equation}
+$r \approx 0$: estado \emph{desincronizado}.\quad $r \approx 1$: \emph{sincronización global}.
+
+\subsection*{Física: competencia heterogeneidad vs.\ acoplamiento}
+
+El término $\sin(\theta_j - \theta_i)$ \textbf{atrae} fases cercanas, mientras que la dispersión de $\omega_i$ las \textbf{separa}. Existe un valor crítico $K_c$ a partir del cual emerge sincronización colectiva (transición de fase). Es análogo a la transición entre los regímenes \emph{Asynchronous Irregular} ($r\approx 0$) y \emph{Synchronous Regular} ($r\approx 1$) descritos en \cite{ND-Ch13} para redes de integrate-and-fire.
+
+\subsection*{Topologías de red a estudiar}
+
+\begin{description}[leftmargin=1.1cm,style=nextline]
+  \item[(a) Red totalmente conectada] $A_{ij}=1\ \forall i\neq j$. \emph{All-to-all coupling}, el esquema más simple \cite{ND-Ch12}.
+  \item[(b) Red aleatoria (Erdős--Rényi)] $A_{ij}=1$ con probabilidad $p\in[0,1]$ (al menos 10 valores). Grado medio $\langle k \rangle = p(N-1)$.
+  \item[(c) Red anillo] $A_{ij}=1$ sii $j \in \{i-v,\ldots,i-1,i+1,\ldots,i+v\}$ con índices periódicos, $v\in[1,10]$.
+\end{description}
+
+\section{Parámetros del Sistema 1 (según enunciado)}
+
+\subsection*{Parámetros comunes a las tres topologías}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{@{}p{1.4cm} p{4.6cm} p{4.6cm} p{4.6cm}@{}}
+\toprule
+\textbf{Símbolo} & \textbf{Significado} & \textbf{Valor / Rango} & \textbf{Cómo se determina} \\
+\midrule
+$N$ & Número de osciladores & $N > 500$ & Fijo. Elegir (p.ej.\ $N{=}500$ o $1000$) y mantener constante. \\
+$\omega_i$ & Frecuencia natural & $\omega_i \sim \mathcal{N}(\mu{=}1,\ \sigma{=}0.1)$ & Muestreo aleatorio por realización; \emph{fijas} durante la integración. \\
+$\theta_i(0)$ & Fase inicial & $\theta_i(0) \sim \mathcal{U}[0, 2\pi)$ & Muestreo aleatorio uniforme por realización. \\
+$K$ & Acoplamiento global & $K \in [0, 1]$ & Parámetro de control; se \emph{barre}. \\
+$A_{ij}$ & Conectividad & Depende de la topología & $A_{ii}=0$ siempre. \\
+$dt$ & Paso de integración & Fijo, a elegir & ``$dt$ fijo e intrínseco de la simulación'' (consigna). \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection*{Parámetros específicos por topología}
+
+\textbf{(a) Red totalmente conectada:}
+$A_{ij}=1\ \forall i\neq j$. Barrer $K\in[0,1]$. Para cada $K$: \textbf{$>10$ realizaciones} de $\theta_i(0)$ y $\omega_i$, promediar $r(t)$.
+
+\medskip
+\textbf{(b) Red aleatoria (Erdős--Rényi):}
+$A_{ij}=1$ con probabilidad $p$, $0$ en otro caso ($\forall i\neq j$).
+\begin{itemize}
+  \item $p \in [0, 1]$, \textbf{al menos 10 valores}.
+  \item Para análisis de $r(p)$: fijar $K=1$.
+  \item Por cada par $(p, K)$: \textbf{$>10$ realizaciones} independientes de la red $A_{ij}$ \emph{y} de las condiciones iniciales.
+  \item Mapas 2D: $r_\infty$ y $\tau_s$ como función de $(p, K)$.
+\end{itemize}
+
+\medskip
+\textbf{(c) Red anillo:}
+$A_{ij}=1$ sii $j \in \{i-v,\ldots,i-1,i+1,\ldots,i+v\}$, índices periódicos (mod $N$).
+\begin{itemize}
+  \item $v \in [1, 10]$ entero (vecindad a cada lado).
+  \item Para análisis de $r(v)$: fijar $K=1$.
+  \item Por cada par $(v, K)$: \textbf{$>10$ realizaciones} independientes de las condiciones iniciales.
+  \item Mapas 2D: $r_\infty$ y $\tau_s$ como función de $(v, K)$.
+\end{itemize}
+
+\subsection*{Observación: simetría de $A_{ij}$}
+
+El enunciado no la fija explícitamente. Convención adoptada:
+\begin{itemize}
+  \item \emph{Completa}: simétrica trivialmente.
+  \item \emph{Aleatoria}: sortear $A_{ij}$ para $i<j$ y replicar $A_{ji}=A_{ij}$ (red no dirigida).
+  \item \emph{Anillo}: simétrica por construcción.
+\end{itemize}
+
+\section{Integrador: Runge--Kutta de orden 4}
+
+Con $\boldsymbol\theta = (\theta_1,\ldots,\theta_N)$ y campo $f(\boldsymbol\theta)_i = \omega_i + K \sum_j A_{ij}\sin(\theta_j-\theta_i)$:
+
+\begin{align*}
+\mathbf k_1 &= f(\boldsymbol\theta) \\
+\mathbf k_2 &= f(\boldsymbol\theta + \tfrac{h}{2}\,\mathbf k_1) \\
+\mathbf k_3 &= f(\boldsymbol\theta + \tfrac{h}{2}\,\mathbf k_2) \\
+\mathbf k_4 &= f(\boldsymbol\theta + h\,\mathbf k_3) \\
+\boldsymbol\theta(t+h) &= \boldsymbol\theta(t) + \tfrac{h}{6}\bigl(\mathbf k_1 + 2\mathbf k_2 + 2\mathbf k_3 + \mathbf k_4\bigr)
+\end{align*}
+
+El sistema es \emph{autónomo} (f no depende explícitamente de $t$), por lo que los offsets temporales se omiten. $h = dt$ fijo durante toda la simulación.
+
+\subsection*{Elección de $dt$ y $t_{\text{sim}}$ (calibración empírica)}
+
+Ni la bibliografía (\textit{Neuronal Dynamics}) ni el \texttt{Teorica5a.pdf} ni el enunciado prescriben un valor de $dt$: hay que determinarlo por convergencia. La única escala temporal natural es el período de oscilación $T = 2\pi/\langle\omega\rangle \approx 2\pi \approx 6.28$.
+
+\textbf{Test de convergencia para $dt$:} probamos $dt = 10^{-x}$ con $x\in\{1,2,3,4\}$:
+
+\begin{center}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}c c c p{6cm}@{}}
+\toprule
+$x$ & $dt$ & $dt/T$ aprox. & comentario \\
+\midrule
+1 & $10^{-1}=0.1$    & $T/63$    & probablemente demasiado grueso \\
+2 & $10^{-2}=0.01$   & $T/628$   & candidato razonable \\
+3 & $10^{-3}=0.001$  & $T/6280$  & preciso, más caro \\
+4 & $10^{-4}=0.0001$ & $T/62800$ & referencia (``ground truth'') \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Protocolo:}
+\begin{enumerate}
+  \item Fijar las \emph{mismas semillas} de $\omega_i$ y $\theta_i(0)$ para todas las corridas.
+  \item Fijar $K$ (p.ej.\ $K=0.5$, zona de transición) y topología (p.ej.\ completa).
+  \item Integrar con cada $dt$ hasta el mismo $t_{\text{sim}}$ y comparar las trazas $r(t)$.
+  \item Quedarse con el $dt$ \emph{más grande} tal que la diferencia con el siguiente más chico sea despreciable ($\|r(t;dt) - r(t;dt/10)\|_\infty < \text{tol}$).
+\end{enumerate}
+
+\textbf{Elección de $t_{\text{sim}}$:} debe cumplir $t_{\text{sim}} \gg \tau_s(K)$. Como $\tau_s$ es justo lo que queremos medir, calibrar con una corrida piloto: graficar $r(t)$ y exigir que el último $\sim 20\%$ del tiempo sea estacionario. El peor caso (más lento) es $K$ cerca de $K_c$. En la práctica de Kuramoto suele bastar $t_{\text{sim}} \in [50, 500]$.
+
+\section{Observables y objetivos}
+
+\begin{enumerate}
+  \item Evolución temporal $r(t)$ para distintos $K\in[0,1]$, promediada sobre $>10$ realizaciones independientes (semillas de $\theta_i(0)$ y, si corresponde, de $A_{ij}$).
+  \item Curva estacionaria $r_\infty(K)$: identificar $K_c$.
+  \item Tiempo de sincronización $\tau_s(K)$ (llegada al estacionario).
+  \item Mapas 2D: $r_\infty(p,K)$ y $\tau_s(p,K)$ para red aleatoria; $r_\infty(v,K)$ y $\tau_s(v,K)$ para anillo.
+  \item Comparación final de $\tau_s$ entre las tres topologías.
+\end{enumerate}
+
+\section{Plan de implementación}
+
+\begin{enumerate}
+  \item Motor de simulación: integra con RK4, $dt$ fijo, emite \textbf{archivo de texto} (consigna).
+  \item Análisis y animación: módulos separados que leen los archivos de texto.
+  \item Por realización: muestrear $\omega_i$, $\theta_i(0)$ y (si corresponde) $A_{ij}$; integrar hasta tiempo final; loggear $r(t)$ y/o todas las $\theta_i(t)$.
+  \item Promediar sobre $\geq 10$ realizaciones por punto de $(K,p)$ o $(K,v)$.
+  \item Visualización: nodos en el círculo unitario coloreados por fase, o grilla coloreada por $\theta_i$.
+\end{enumerate}
+
+\section*{Bibliografía}
+\begin{thebibliography}{9}
+\bibitem{ND-Ch1} W.~Gerstner, W.~Kistler, R.~Naud, L.~Paninski. \emph{Neuronal Dynamics}. Cambridge University Press. Cap.~1: \emph{Introduction: Neurons and Mathematics}. \url{https://neuronaldynamics.epfl.ch/online/Ch1.html}
+\bibitem{ND-Ch4} \emph{ibid.} Cap.~4: \emph{Dimensionality Reduction and Phase Plane Analysis}. \url{https://neuronaldynamics.epfl.ch/online/Ch4.html}
+\bibitem{ND-Ch12} \emph{ibid.} Cap.~12.3: \emph{Connectivity Schemes}. \url{https://neuronaldynamics.epfl.ch/online/Ch12.S3.html}
+\bibitem{ND-Ch13} \emph{ibid.} Cap.~13.4: \emph{Synchrony, oscillations, and irregularity}. \url{https://neuronaldynamics.epfl.ch/online/Ch13.S4.html}
+\bibitem{T5a} Cátedra SdS. \emph{Teorica5a: Dinámica neuronal y sincronización}. (Slides 1--14.)
+\bibitem{E} Cátedra SdS. \emph{TP5: Comportamiento colectivo -- Enunciado}, 22/05/2026.
+\end{thebibliography}
+
+\end{document}
