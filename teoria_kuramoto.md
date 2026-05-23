@@ -234,16 +234,26 @@ En este TP **Aᵢⱼ es fija** (no hay plasticidad), pero conceptualmente la sin
 
 A continuación se detalla **cada parámetro** del modelo tal como aparece en el enunciado **[E]**, indicando su valor o rango, cómo se determina y si es fijo o se barre.
 
+> **Valores numéricos elegidos para este TP** (calibrados experimentalmente, ver `calibracion.md` o `calibracion.pdf` para todo el detalle):
+>
+> - **N = 600** (cumple N > 500, costo computacional ~8× menor que N=1000)
+> - **dt = 10⁻³** (mínimo estable de RK4, converge a precisión de máquina)
+> - **tSim** depende de la topología:
+>   - **completa: 50** (sincroniza en t < 1)
+>   - **aleatoria: 50** (sincroniza en t < 3 incluso para p chico)
+>   - **anillo: 1500** (transitorios largos por propagación local)
+
 ### Parámetros del modelo (comunes a las 3 topologías)
 
 | Símbolo | Significado | Valor / Rango | Cómo se determina | Cita |
 |---------|-------------|---------------|-------------------|------|
-| `N` | Número de neuronas (osciladores) | **N > 500** | Fijo por enunciado. Elegir un valor (p.ej. N=500 o N=1000) y dejarlo constante en todos los experimentos. | [E p.1] *"un conjunto de N > 500 neuronas simplificadas interactuantes"* |
+| `N` | Número de neuronas (osciladores) | **N = 600** (consigna: N > 500) | Elegido tras balancear costo (∝ N³) vs calidad estadística (~1/√N). | [E p.1] *"un conjunto de N > 500 neuronas simplificadas interactuantes"* |
 | `ωᵢ` | Frecuencia natural de la neurona i | ωᵢ ~ **𝒩(μ=1, σ=0.1)** | Muestreo aleatorio de una **distribución normal con media 1 y desvío estándar 0.1**, una vez por realización. Constantes durante la integración. | [E p.1] *"Las frecuencias naturales deben elegirse aleatoriamente de una distribución normal de valor medio 1 y desvío 0.1"* |
 | `θᵢ(0)` | Fase inicial de la neurona i | **U[0, 2π)** | Muestreo aleatorio uniforme en el intervalo [0, 2π), una vez por realización. | [E p.2] *"Las fases iniciales se eligen aleatoriamente en el intervalo [0,2π)"* |
 | `K` | Intensidad de acoplamiento global | **K ∈ [0, 1]** | Parámetro de control que se **barre** entre 0 y 1. | [E p.2, red totalmente conectada] *"distintos valores de K = [0,1]"* |
 | `Aᵢⱼ` | Matriz de conectividad | Depende de la topología (ver más abajo) | A_ii = 0 siempre. | [E p.1] |
-| `dt` | Paso de integración | Fijo, a elegir | El enunciado pide *"dt fijo e intrínseco de la simulación"*. Elegirlo lo suficientemente chico para que RK4 sea estable (p.ej. dt ~ 0.01–0.05). | [E p.1] *"Las simulaciones tendrán un dt fijo e intrínseco de la simulación."* |
+| `dt` | Paso de integración | **dt = 10⁻³** (fijo) | Elegido por test de convergencia: dt ≥ 10⁻² inestable, dt ≤ 10⁻³ precisión de máquina. Ver §4.1. | [E p.1] *"Las simulaciones tendrán un dt fijo e intrínseco de la simulación."* |
+| `tSim` | Tiempo total simulado | **Por topología: 50 / 50 / 1500** | Calibrado por análisis de estacionariedad de r(t). Ver `calibracion.md`. | — |
 
 ### Parámetros específicos de cada topología
 
@@ -319,45 +329,37 @@ f(θ)ᵢ = ωᵢ + K · Σⱼ Aᵢⱼ · sin(θⱼ − θᵢ)
 
 **dt:** fijo durante toda la simulación (requisito del enunciado **[E p.1]**).
 
-### 4.1. Elección de `dt` y `t_sim` (a calibrar empíricamente)
+### 4.1. Elección de `dt` y `t_sim` — resultado de la calibración
 
-Ni la bibliografía web (*Neuronal Dynamics*) ni el `Teorica5a.pdf` ni el enunciado prescriben valores numéricos. *Neuronal Dynamics* es un libro analítico; lo más cercano es la idea de **separación de escalas** del Cap. 4.6, que sirve para reducir modelos pero no para elegir paso de integración. El enunciado sólo exige *"dt fijo e intrínseco"* **[E p.1]**.
+Ni la bibliografía web (*Neuronal Dynamics*) ni el `Teorica5a.pdf` ni el enunciado prescriben valores numéricos. Los determinamos experimentalmente. **El detalle completo está en `calibracion.md` / `calibracion.pdf`** — acá resumimos los resultados.
 
 #### Escala temporal natural del sistema
 
-La única escala temporal es el período de oscilación dado por la media de las ωᵢ:
+La única escala temporal es el período de oscilación: T = 2π / ⟨ω⟩ ≈ 6.28.
 
-```
-T = 2π / ⟨ω⟩ ≈ 2π / 1 ≈ 6.28
-```
+#### dt — test de convergencia (resumen)
 
-#### Test de convergencia para `dt`
+Corrimos la misma realización (N=1000, completa, K=0.5, seed=42) con dt ∈ {10⁻¹, 5·10⁻², 2·10⁻², 10⁻², 5·10⁻³, 2·10⁻³, 10⁻³, 10⁻⁴} y comparamos r(t).
 
-Vamos a probar **dt = 10⁻ˣ** para varios valores de x ∈ {1, 2, 3, 4}:
+**Resultado:**
 
-| x | dt | dt / T (aprox.) | comentario |
-|---|----|-----------------|------------|
-| 1 | 10⁻¹ = 0.1 | ~T/63 | probablemente demasiado grueso |
-| 2 | 10⁻² = 0.01 | ~T/628 | candidato razonable |
-| 3 | 10⁻³ = 0.001 | ~T/6280 | preciso, más caro |
-| 4 | 10⁻⁴ = 0.0001 | ~T/62800 | referencia de "ground truth" |
+| dt | error vs ref. | diagnóstico |
+|----|---------------|-------------|
+| 10⁻¹, 5·10⁻², 2·10⁻², **10⁻²** | ~1 | **inestable** (RK4 más allá de su región de estabilidad) |
+| 5·10⁻³ | 8.7·10⁻⁹ | converge, pero al borde del threshold |
+| **10⁻³** | **3.8·10⁻¹⁵** | **precisión de máquina** ✓ |
 
-**Protocolo:**
-1. Fijar **mismas semillas** de ωᵢ y θᵢ(0) para todas las corridas (misma realización física).
-2. Fijar K (p.ej. K = 0.5, en zona de transición) y topología (p.ej. completa).
-3. Integrar con cada dt hasta el mismo t_sim.
-4. Comparar la traza r(t) entre dt sucesivos.
-5. Quedarse con el **dt más grande tal que la diferencia con el siguiente más chico sea despreciable** (criterio: ‖r(t; dt) − r(t; dt/10)‖_∞ < tolerancia).
+Hay un **acantilado de estabilidad** entre dt = 10⁻² (inestable) y dt = 5·10⁻³. Elegimos **dt = 10⁻³** por tener margen de seguridad para todo K ∈ [0, 1] y para los casos sparse (donde el threshold puede correrse).
 
-#### Elección de `t_sim`
+#### tSim — calibración por topología
 
-`t_sim` debe satisfacer `t_sim ≫ τ_s(K)`, donde τ_s es el tiempo de sincronización (justamente lo que queremos medir). Como el peor caso es **K cerca de K_c** (sincronización lenta), conviene calibrar t_sim ahí.
+Tras correr los casos potencialmente más lentos con tSim largo (100 → 500 → 2000), encontramos comportamientos muy distintos según la topología:
 
-**Protocolo:**
-1. Correr una simulación piloto con t_sim modesto (p.ej. 100 unidades).
-2. Graficar r(t) y verificar que el último ~20% del tiempo sea estacionario (sin tendencia, fluctuaciones acotadas).
-3. Si no llegó al estacionario → duplicar t_sim y repetir.
-4. En la práctica de Kuramoto suele bastar `t_sim ∈ [50, 500]`.
+- **Completa:** sincroniza en t < 1 (K_c efectivo ~10⁻⁴, todo nuestro rango es supercrítico). → **tSim_completa = 50**.
+- **Aleatoria:** sincroniza en t < 3 incluso para p=0.01 (el diámetro del grafo aleatorio es chico). → **tSim_aleatoria = 50**.
+- **Anillo:** transitorios MUY largos (estados quiméricos, propagación local). Para v=5, K=0.5/1.0, r(t) sigue evolucionando incluso a t=400 (mínimo local) y recién se estabiliza alrededor de t~1000–1500. → **tSim_anillo = 1500**.
+
+Usar un único tSim global (p.ej. 500) tendría dos problemas: (i) los casos lentos de anillo darían valores **transitorios incorrectos** de r_estacionario; (ii) los casos rápidos (completa, aleatoria) gastarían 30× más cómputo del necesario.
 
 ---
 

@@ -142,26 +142,29 @@ $r(t)$ se computa dentro del motor en \texttt{writeRow} ($O(N)$ por fila): el po
 
 \section{Compilación y ejecución}
 
+\textbf{Configuración del TP} (calibrada experimentalmente, ver \texttt{calibracion.pdf}):
+$N=600$, $dt=10^{-3}$, $t_{\text{sim}}=50$ (completa, aleatoria) / $1500$ (anillo).
+
 \begin{lstlisting}[language=bash]
 cd motor
 javac *.java   # compila las 6 clases en .class
 
 # Red completa, K=0.5
-java KuramotoSim --N 500 --K 0.5 --topology complete \
-                 --dt 0.01 --tSim 100 \
+java KuramotoSim --N 600 --K 0.5 --topology complete \
+                 --dt 0.001 --tSim 50 \
                  --seed 42 --output complete_K0.5_seed42.csv \
                  --dumpEvery 10 --dumpPhases true
 
 # Red aleatoria, K=1, p=0.3, semillas separadas
-java KuramotoSim --N 500 --K 1.0 --topology random --p 0.3 \
-                 --dt 0.01 --tSim 100 \
+java KuramotoSim --N 600 --K 1.0 --topology random --p 0.3 \
+                 --dt 0.001 --tSim 50 \
                  --seed 42 --netSeed 7 \
                  --output random_p0.3_K1_s42_n7.csv \
                  --dumpPhases false
 
-# Red anillo, v=3
-java KuramotoSim --N 500 --K 0.7 --topology ring --v 3 \
-                 --dt 0.01 --tSim 200 \
+# Red anillo, v=3  -- tSim mucho mayor por la fisica del anillo
+java KuramotoSim --N 600 --K 0.7 --topology ring --v 3 \
+                 --dt 0.001 --tSim 1500 \
                  --seed 42 --output ring_v3_K0.7.csv
 \end{lstlisting}
 

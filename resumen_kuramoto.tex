@@ -80,6 +80,25 @@ El término $\sin(\theta_j - \theta_i)$ \textbf{atrae} fases cercanas, mientras 
 
 \section{Parámetros del Sistema 1 (según enunciado)}
 
+\subsection*{Valores numéricos elegidos para este TP}
+
+Calibrados experimentalmente (ver \texttt{calibracion.pdf} para todo el detalle):
+
+\begin{center}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}l l p{8cm}@{}}
+\toprule
+\textbf{Parámetro} & \textbf{Valor} & \textbf{Justificación} \\
+\midrule
+$N$ & \textbf{600} & Cumple $N>500$, costo $\sim 8\times$ menor que $N=1000$. \\
+$dt$ & \textbf{$10^{-3}$} & Mínimo $dt = 10^{-x}$ estable de RK4, precisión de máquina. \\
+$t_{\text{sim}}$ completa  & \textbf{50}   & Sincroniza en $t<1$. \\
+$t_{\text{sim}}$ aleatoria & \textbf{50}   & Sincroniza en $t<3$ incluso para $p$ chico. \\
+$t_{\text{sim}}$ anillo    & \textbf{1500} & Transitorios largos por propagación local (estados quiméricos). \\
+\bottomrule
+\end{tabular}
+\end{center}
+
 \subsection*{Parámetros comunes a las tres topologías}
 
 \begin{center}
@@ -88,12 +107,13 @@ El término $\sin(\theta_j - \theta_i)$ \textbf{atrae} fases cercanas, mientras 
 \toprule
 \textbf{Símbolo} & \textbf{Significado} & \textbf{Valor / Rango} & \textbf{Cómo se determina} \\
 \midrule
-$N$ & Número de osciladores & $N > 500$ & Fijo. Elegir (p.ej.\ $N{=}500$ o $1000$) y mantener constante. \\
+$N$ & Número de osciladores & $N = 600$ (consigna: $N>500$) & Calibrado por costo vs.\ calidad estadística. \\
 $\omega_i$ & Frecuencia natural & $\omega_i \sim \mathcal{N}(\mu{=}1,\ \sigma{=}0.1)$ & Muestreo aleatorio por realización; \emph{fijas} durante la integración. \\
 $\theta_i(0)$ & Fase inicial & $\theta_i(0) \sim \mathcal{U}[0, 2\pi)$ & Muestreo aleatorio uniforme por realización. \\
 $K$ & Acoplamiento global & $K \in [0, 1]$ & Parámetro de control; se \emph{barre}. \\
 $A_{ij}$ & Conectividad & Depende de la topología & $A_{ii}=0$ siempre. \\
-$dt$ & Paso de integración & Fijo, a elegir & ``$dt$ fijo e intrínseco de la simulación'' (consigna). \\
+$dt$ & Paso de integración & $dt = 10^{-3}$ (fijo) & Calibrado por test de convergencia RK4. \\
+$t_{\text{sim}}$ & Tiempo total simulado & Por topología (ver arriba) & Calibrado por análisis de estacionariedad de $r(t)$. \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -146,35 +166,15 @@ Con $\boldsymbol\theta = (\theta_1,\ldots,\theta_N)$ y campo $f(\boldsymbol\thet
 
 El sistema es \emph{autónomo} (f no depende explícitamente de $t$), por lo que los offsets temporales se omiten. $h = dt$ fijo durante toda la simulación.
 
-\subsection*{Elección de $dt$ y $t_{\text{sim}}$ (calibración empírica)}
+\subsection*{Resultado de la calibración (ver \texttt{calibracion.pdf})}
 
-Ni la bibliografía (\textit{Neuronal Dynamics}) ni el \texttt{Teorica5a.pdf} ni el enunciado prescriben un valor de $dt$: hay que determinarlo por convergencia. La única escala temporal natural es el período de oscilación $T = 2\pi/\langle\omega\rangle \approx 2\pi \approx 6.28$.
+\textbf{$dt$:} test de convergencia con $dt = 10^{-x}$ sobre red completa $N=1000$, $K=0.5$. Para $dt \geq 10^{-2}$ el integrador RK4 es \emph{inestable} (error $\sim 1$); para $dt \leq 10^{-3}$ converge a precisión de máquina ($\sim 10^{-15}$). $\Rightarrow dt = 10^{-3}$.
 
-\textbf{Test de convergencia para $dt$:} probamos $dt = 10^{-x}$ con $x\in\{1,2,3,4\}$:
-
-\begin{center}
-\renewcommand{\arraystretch}{1.2}
-\begin{tabular}{@{}c c c p{6cm}@{}}
-\toprule
-$x$ & $dt$ & $dt/T$ aprox. & comentario \\
-\midrule
-1 & $10^{-1}=0.1$    & $T/63$    & probablemente demasiado grueso \\
-2 & $10^{-2}=0.01$   & $T/628$   & candidato razonable \\
-3 & $10^{-3}=0.001$  & $T/6280$  & preciso, más caro \\
-4 & $10^{-4}=0.0001$ & $T/62800$ & referencia (``ground truth'') \\
-\bottomrule
-\end{tabular}
-\end{center}
-
-\textbf{Protocolo:}
-\begin{enumerate}
-  \item Fijar las \emph{mismas semillas} de $\omega_i$ y $\theta_i(0)$ para todas las corridas.
-  \item Fijar $K$ (p.ej.\ $K=0.5$, zona de transición) y topología (p.ej.\ completa).
-  \item Integrar con cada $dt$ hasta el mismo $t_{\text{sim}}$ y comparar las trazas $r(t)$.
-  \item Quedarse con el $dt$ \emph{más grande} tal que la diferencia con el siguiente más chico sea despreciable ($\|r(t;dt) - r(t;dt/10)\|_\infty < \text{tol}$).
-\end{enumerate}
-
-\textbf{Elección de $t_{\text{sim}}$:} debe cumplir $t_{\text{sim}} \gg \tau_s(K)$. Como $\tau_s$ es justo lo que queremos medir, calibrar con una corrida piloto: graficar $r(t)$ y exigir que el último $\sim 20\%$ del tiempo sea estacionario. El peor caso (más lento) es $K$ cerca de $K_c$. En la práctica de Kuramoto suele bastar $t_{\text{sim}} \in [50, 500]$.
+\textbf{$t_{\text{sim}}$ por topología} (necesario por la física, no por capricho):
+\begin{itemize}
+\item \emph{Completa} y \emph{aleatoria}: sincronizan en $t<3$ incluso para $p$ chico. $t_{\text{sim}} = 50$ deja margen $>15\times$.
+\item \emph{Anillo}: propagación local $\Rightarrow \tau \sim N/v$, plus estados quiméricos. Confirmamos con corridas a $t_{\text{sim}}=2000$ que $r(t)$ recién se estabiliza alrededor de $t\approx 1000$--$1500$ para $v$ intermedio. $t_{\text{sim}} = 1500$ captura el estacionario.
+\end{itemize}
 
 \section{Observables y objetivos}
 

@@ -1,0 +1,183 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{array,booktabs,longtable}
+\usepackage{graphicx}
+\usepackage{hyperref}
+
+\hypersetup{colorlinks=true,urlcolor=blue,linkcolor=black}
+\setlist{itemsep=2pt,topsep=2pt}
+\titlespacing*{\section}{0pt}{10pt}{4pt}
+\titlespacing*{\subsection}{0pt}{8pt}{3pt}
+
+\graphicspath{{postproc/}}
+
+\title{\vspace{-1cm}\textbf{TP5 -- Calibración de parámetros numéricos}\\[2pt]\large Kuramoto: elección de $N$, $dt$ y $t_{\text{sim}}$}
+\author{Simulación de Sistemas -- 2026Q1}
+\date{}
+
+\begin{document}
+\maketitle
+\vspace{-0.8cm}
+
+Este documento explica \textbf{cómo elegimos} los valores numéricos del TP y \textbf{por qué}, basado en experimentos de convergencia y estacionariedad.
+
+\subsection*{Resultado final}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{@{}l l p{8.8cm}@{}}
+\toprule
+\textbf{Parámetro} & \textbf{Valor} & \textbf{Justificación} \\
+\midrule
+$N$ & \textbf{600} & Cumple $N>500$ con costo computacional manejable. \\
+$dt$ & \textbf{$10^{-3}$} & Test de convergencia RK4: mínimo estable, precisión de máquina. \\
+$t_{\text{sim}}$ (completa)  & \textbf{50}   & Sincroniza en $t<1$. Margen $50\times$. \\
+$t_{\text{sim}}$ (aleatoria) & \textbf{50}   & Sincroniza en $t<3$ incluso para $p$ chico. \\
+$t_{\text{sim}}$ (anillo)    & \textbf{1500} & Transitorios largos por propagación local. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Costo total estimado del TP:} $\sim$25 min con 4 cores paralelos (vs. $\sim$50 h con $N=1000$, $t_{\text{sim}}=500$ global).
+
+\section{Elección de $N$}
+
+\textbf{Constraint del enunciado:} $N > 500$.
+
+\subsection*{Costo computacional}
+
+Benchmark del motor optimizado (red completa, $K=0.8$, $t_{\text{sim}}=50$):
+
+\begin{center}
+\begin{tabular}{c c c}
+\toprule
+$N$ & Tiempo (s) & Escalado \\
+\midrule
+500  & 2.92  & $1\times$ \\
+750  & 6.67  & $2.3\times$ \\
+1000 & 12.32 & $4.2\times$ \\
+1500 & 28.37 & $9.7\times$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Costo por paso $\propto N^2$ (cuello de botella: doble bucle de la red completa). El $t_{\text{sim}}$ requerido en anillo escala como $N$ (propagación local), por lo que \textbf{costo total} $\propto N^3$.
+
+\subsection*{Calidad estadística}
+
+Fluctuaciones del parámetro de orden $\sim 1/\sqrt{N}$:
+\begin{itemize}
+\item $N=600$: $\sim$4.1\%
+\item $N=1000$: $\sim$3.2\%
+\end{itemize}
+
+Diferencia despreciable. La transición $K_c$ se ve igual de clara en ambos.
+
+\subsection*{Conectividad de la red aleatoria}
+
+Para que un sorteo de Erdős--Rényi sea conectado se necesita $\langle k \rangle > \log(N)$:
+
+\begin{itemize}
+\item $N=600$: $\log(600) \approx 6.4 \Rightarrow p_{\min} \approx 0.011$
+\item $N=1000$: $\log(1000) \approx 6.9 \Rightarrow p_{\min} \approx 0.007$
+\end{itemize}
+
+Con $N=600$ y $p$ chico la red puede estar marginalmente desconectada, mitigado promediando sobre $>10$ realizaciones.
+
+\subsection*{Veredicto: $N = 600$}
+
+Cumple consigna, costo $8\times$ menor que $N=1000$, calidad estadística suficiente.
+
+\section{Elección de $dt$}
+
+\textbf{Setup:} $N=1000$, completa, $K=0.5$, semilla 42, $t_{\text{sim}}=20$. Misma realización corrida con $dt$ variable. Comparamos $r(t)$ tomando $dt=10^{-4}$ como referencia.
+
+\begin{center}
+\includegraphics[width=0.96\linewidth]{dt_convergence.png}
+\end{center}
+
+\subsection*{Resultados}
+
+\begin{center}
+\begin{tabular}{c c l}
+\toprule
+$dt$ & $\max|\Delta r|$ vs ref & Diagnóstico \\
+\midrule
+$10^{-1}$    & 0.987            & \textbf{inestable} (catastrófico) \\
+$5\cdot10^{-2}$ & 0.981         & inestable \\
+$2\cdot10^{-2}$ & 0.977         & inestable \\
+$10^{-2}$    & 0.984            & inestable \\
+$5\cdot10^{-3}$ & $8.7\cdot10^{-9}$  & converge \\
+$2\cdot10^{-3}$ & $3.9\cdot10^{-15}$ & precisión de máquina \\
+$\mathbf{10^{-3}}$ & $\mathbf{3.8\cdot10^{-15}}$ & \textbf{precisión de máquina} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Hay un \textbf{acantilado de estabilidad} entre $dt = 10^{-2}$ (inestable) y $dt = 5\cdot10^{-3}$ (converge).
+
+\subsection*{Por qué $10^{-3}$ y no $5\cdot10^{-3}$}
+
+\begin{itemize}
+\item $5\cdot10^{-3}$ está apenas debajo del threshold; para $K$ mayor o $N$ mayor el threshold puede correrse (condición RK4: $dt \lesssim 2.78/(K\cdot N)$).
+\item $10^{-3}$ asegura estabilidad para \textbf{todo el barrido $K\in[0,1]$}.
+\item $10^{-3}$ es un valor limpio y conservador.
+\end{itemize}
+
+\subsection*{Veredicto: $dt = 10^{-3}$}
+
+\section{Elección de $t_{\text{sim}}$}
+
+Corrimos los casos potencialmente más lentos con $t_{\text{sim}}$ largo (100 $\to$ 500 $\to$ 2000) para ver dónde realmente se estabiliza $r(t)$.
+
+\begin{center}
+\includegraphics[width=0.96\linewidth]{tsim_calibration.png}
+\end{center}
+
+\subsection*{Por topología}
+
+\textbf{Red completa.} Sincroniza instantáneamente ($t<1$) para cualquier $K>0.05$. $K_c$ efectivo $\approx 2/(\pi\cdot N \cdot g(0)) \approx 10^{-4}$, varios órdenes de magnitud por debajo del rango de interés. $\Rightarrow t_{\text{sim,completa}} = 50$.
+
+\textbf{Red aleatoria.} Incluso con $p=0.01$ sincroniza en $t\approx 2$--3 (diámetro del grafo aleatorio $\sim \log(N)/\log\langle k\rangle$, muy chico). $\Rightarrow t_{\text{sim,aleatoria}} = 50$.
+
+\textbf{Red anillo.} Propagación local: información viaja a sólo $2v$ vecinos, transitorios escalan como $\tau \sim N/v$. Además, para $v$ intermedio ($3$--$7$) y $K$ moderado ($0.5$--$1$) aparecen \textbf{estados quiméricos} y ondas viajeras con transitorios muy largos. Confirmamos comportamiento asintótico a $t_{\text{sim}}=2000$:
+
+\begin{center}
+\includegraphics[width=0.96\linewidth]{tsim_n600_long.png}
+\end{center}
+
+\begin{center}
+\begin{tabular}{l c c c}
+\toprule
+Caso & $r$ a $t=300$ & $r$ asintótico ($t\approx 1500$) & $\Delta$ \\
+\midrule
+ring $v=5$, $K=1.0$ & $\sim 0.2$ (mínimo local!) & 0.54 & 0.34 \\
+ring $v=5$, $K=0.5$ & $\sim 0.25$ (bajando)      & 0.45 & 0.20 \\
+ring $v=10$, $K=0.1$ & $\sim 0.1$ (subiendo)     & 0.37 & 0.27 \\
+ring $v=1$, $K=0.5$ & $\sim 0.06$ (oscilante)    & $\sim 0.05$ & OK \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Si midiéramos $r_\infty$ en $t=300$ daríamos \textbf{valores transitorios incorrectos} para los casos lentos. $\Rightarrow t_{\text{sim,anillo}} = 1500$.
+
+\section{Resumen para writeup}
+
+\begin{quote}
+\small
+``Calibramos los parámetros numéricos mediante experimentos de convergencia:
+\begin{itemize}
+\item $dt = 10^{-3}$: elegido tras un test de convergencia con $dt = 10^{-x}$, $x \in \{1,2,3,4\}$ sobre red completa $N=1000$, $K=0.5$. Para $dt \geq 10^{-2}$ el integrador RK4 es inestable; para $dt \leq 10^{-3}$ converge a precisión de máquina.
+\item $N = 600$: cumple $N>500$ con costo $\sim 8\times$ menor que $N=1000$ y calidad estadística similar.
+\item $t_{\text{sim}}$ por topología: 50 para completa y aleatoria (sincronización en $t<5$), 1500 para anillo (transitorios largos por propagación local, observados en pruebas piloto)."
+\end{itemize}
+\end{quote}
+
+\end{document}

@@ -100,28 +100,33 @@ t,r,theta_0,theta_1,...,theta_{N-1}
 
 ## 4. Compilación y ejecución
 
+**Configuración del TP** (calibrada experimentalmente, ver `calibracion.md`):
+- N = 600
+- dt = 10⁻³
+- tSim = 50 (completa, aleatoria) / 1500 (anillo)
+
 ```bash
 cd motor
 javac *.java   # compila las 6 clases en .class
 
-# Ejemplo 1: red completa, K=0.5, dt=0.01, 100 unidades de tiempo
-java KuramotoSim --N 500 --K 0.5 --topology complete \
-                 --dt 0.01 --tSim 100 \
+# Ejemplo 1: red completa, K=0.5
+java KuramotoSim --N 600 --K 0.5 --topology complete \
+                 --dt 0.001 --tSim 50 \
                  --seed 42 --output complete_K0.5_seed42.csv \
                  --dumpEvery 10 --dumpPhases true
 
 # Ejemplo 2: red aleatoria, K=1, p=0.3, semillas separadas
-java KuramotoSim --N 500 --K 1.0 --topology random --p 0.3 \
-                 --dt 0.01 --tSim 100 \
+java KuramotoSim --N 600 --K 1.0 --topology random --p 0.3 \
+                 --dt 0.001 --tSim 50 \
                  --seed 42 --netSeed 7 \
                  --output random_p0.3_K1_s42_n7.csv \
                  --dumpPhases false
 
-# Ejemplo 3: red anillo, v=3
-java KuramotoSim --N 500 --K 0.7 --topology ring --v 3 \
-                 --dt 0.01 --tSim 200 \
+# Ejemplo 3: red anillo, v=3 — OJO: tSim mucho mayor por la física del anillo
+java KuramotoSim --N 600 --K 0.7 --topology ring --v 3 \
+                 --dt 0.001 --tSim 1500 \
                  --seed 42 --output ring_v3_K0.7.csv \
-                 --dumpEvery 20
+                 --dumpEvery 100
 ```
 
 ---
