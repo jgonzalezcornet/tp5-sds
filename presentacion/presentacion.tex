@@ -1,0 +1,281 @@
+\documentclass{beamer}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{tikz}
+\usepackage{hyperref}
+
+\usetikzlibrary{positioning}
+
+\usetheme[compress]{Berlin}
+\setbeamertemplate{headline}{}
+\setbeamertemplate{page number in head/foot}[framenumber]
+\setbeamertemplate{navigation symbols}{}
+\setbeamersize{text margin left=5pt, text margin right=5pt}
+\hypersetup{hidelinks}
+
+\newcommand{\vct}[1]{\mathbf{#1}}
+
+\title[TP5 - Kuramoto]{TP5: comportamiento colectivo}
+\subtitle{Sistema 1: sincronizaci\'on de fases en redes neuronales}
+\author[Grupo]{Grupo Nro. XX}
+\institute[ITBA]{72.25 - Simulaci\'on de Sistemas}
+\date{2026 1C}
+
+\makeatletter
+\beamer@theme@subsectionfalse
+\makeatother
+
+\AtBeginSection[]{
+  \begin{frame}
+    \begin{beamercolorbox}[sep=8pt,center]{title}
+      \usebeamerfont{title}\insertsection
+    \end{beamercolorbox}
+  \end{frame}
+}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\section{Introducci\'on}
+
+\begin{frame}{Sistema real}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.53\textwidth}
+    \small
+    \begin{itemize}
+      \item Red de neuronas simplificadas con actividad oscilatoria.
+      \item Cada neurona se modela por una fase $\theta_i(t)$ y una frecuencia natural $\omega_i$.
+      \item El acoplamiento entre neuronas puede inducir sincronizaci\'on colectiva.
+    \end{itemize}
+
+    \column{0.43\textwidth}
+    \centering
+    \begin{tikzpicture}[scale=0.95]
+      \draw[thick] (0,0) circle (1.35);
+      \fill[red!75]    ( 75:1.35) circle (0.09);
+      \fill[orange!80] ( 25:1.35) circle (0.09);
+      \fill[yellow!80!orange] (-10:1.35) circle (0.09);
+      \fill[green!65!black] (-65:1.35) circle (0.09);
+      \fill[blue!70]   (-135:1.35) circle (0.09);
+      \fill[violet!75] (155:1.35) circle (0.09);
+
+      \draw[->, very thick, black] (0,0) -- (0.55,0.72);
+      \node[above right] at (0.55,0.72) {$r(t)$};
+      \node at (0,-1.75) {\small fases sobre el c\'irculo unitario};
+    \end{tikzpicture}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Modelo matem\'atico}
+  \small
+  \textbf{Ecuaci\'on de evoluci\'on}
+  \begin{equation*}
+    \frac{d\theta_i}{dt} = \omega_i + K \sum_j A_{ij} \sin(\theta_j - \theta_i)
+  \end{equation*}
+
+  \begin{columns}[T,onlytextwidth]
+    \column{0.48\textwidth}
+    \begin{itemize}
+      \item $\theta_i$: fase de la neurona $i$.
+      \item $\omega_i$: frecuencia natural.
+      \item $K$: intensidad de acoplamiento global.
+    \end{itemize}
+
+    \column{0.48\textwidth}
+    \begin{itemize}
+      \item $A_{ij}$: matriz de conectividad.
+      \item $N$: cantidad de osciladores.
+    \end{itemize}
+  \end{columns}
+
+  \vspace{0.2cm}
+  \textbf{Especificaci\'on del modelo}
+  \begin{itemize}
+    \item $\omega_i \sim \mathcal{N}(1, 0.1^2)$
+    \item $\theta_i(0) \sim \mathcal{U}[0, 2\pi)$
+    \item La topolog\'ia queda codificada en $A_{ij}$.
+  \end{itemize}
+\end{frame}
+
+\section{Implementaci\'on}
+
+\begin{frame}{Arquitectura del motor}
+  \centering
+  \begin{tikzpicture}[
+    node distance=0.85cm and 1.0cm,
+    box/.style={draw, rounded corners, align=center, minimum width=2.35cm, minimum height=0.78cm, fill=blue!8},
+    main/.style={draw, rounded corners, align=center, minimum width=3.0cm, minimum height=0.90cm, fill=orange!16}
+  ]
+    \node[main] (sim) {\texttt{KuramotoSim}\\[-1pt]\scriptsize loop principal};
+    \node[box, above left=of sim] (cfg) {\texttt{Config}};
+    \node[box, above right=of sim] (net) {\texttt{Network}};
+    \node[box, below left=of sim] (out) {\texttt{Output}};
+    \node[box, below right=of sim] (int) {\texttt{Integrator}};
+    \node[box, below=of int] (dyn) {\texttt{Dynamics}};
+
+    \draw[->, thick] (cfg) -- (sim);
+    \draw[->, thick] (net) -- (sim);
+    \draw[->, thick] (sim) -- (out);
+    \draw[->, thick] (sim) -- (int);
+    \draw[->, thick] (dyn) -- (int);
+  \end{tikzpicture}
+
+  \vspace{0.08cm}
+  \footnotesize
+  \begin{itemize}
+    \item Estado del sistema: arreglos \texttt{theta}, \texttt{omega} y lista de vecinos \texttt{nbr}.
+    \item Salida: CSV con $t$, $r(t)$ y fases opcionales para postproceso.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Algoritmo implementado}
+  \begin{algorithm}[H]
+    \small
+    \caption{Loop principal del motor de Kuramoto}
+    \begin{algorithmic}[1]
+      \State Leer configuraci\'on y semillas.
+      \State Muestrear $\omega_i$ y $\theta_i(0)$.
+      \State Construir vecinos seg\'un la topolog\'ia elegida.
+      \State Inicializar integrador RK4.
+      \For{$step = 0, \dots, steps$}
+        \If{$step \bmod dumpEvery = 0$}
+          \State Escribir $t$, $r(t)$ y, si corresponde, las fases.
+        \EndIf
+        \State Avanzar $\theta$ con un paso RK4.
+      \EndFor
+    \end{algorithmic}
+  \end{algorithm}
+
+  \vspace{0.05cm}
+  {\footnotesize \texttt{Dynamics} precomputa $\sin(\theta_j)$ y $\cos(\theta_j)$ para evaluar el acoplamiento; \texttt{Output} calcula $r(t)$ en cada dump.}
+\end{frame}
+
+\section{Simulaciones}
+
+\begin{frame}{Topolog\'ias estudiadas}
+  \centering
+  \begin{minipage}[t]{0.32\textwidth}
+    \centering
+    \textbf{Completa}\\[0.05cm]
+    \begin{tikzpicture}[scale=0.8]
+      \foreach \name/\x/\y in {a/0/1.1,b/1.0/0.1,c/0.4/-1.0,d/-0.6/-1.0,e/-1.0/0.1} {
+        \coordinate (\name) at (\x,\y);
+      }
+      \foreach \i in {a,b,c,d,e} {
+        \foreach \j in {a,b,c,d,e} {
+          \ifx\i\j\else\draw[gray!55] (\i) -- (\j);\fi
+        }
+      }
+      \foreach \i in {a,b,c,d,e} {
+        \filldraw[fill=blue!65, draw=black] (\i) circle (0.11);
+      }
+    \end{tikzpicture}
+
+    {\scriptsize barrido en $K$}
+  \end{minipage}
+  \hfill
+  \begin{minipage}[t]{0.32\textwidth}
+    \centering
+    \textbf{Aleatoria}\\[0.05cm]
+    \begin{tikzpicture}[scale=0.8]
+      \coordinate (a) at (0,1.1);
+      \coordinate (b) at (1.0,0.4);
+      \coordinate (c) at (0.8,-0.8);
+      \coordinate (d) at (-0.1,-1.1);
+      \coordinate (e) at (-1.0,-0.2);
+      \coordinate (f) at (-0.8,0.8);
+      \foreach \u/\v in {a/b,a/f,b/c,b/e,c/d,d/e,e/f,a/e} {
+        \draw[gray!55] (\u) -- (\v);
+      }
+      \foreach \i in {a,b,c,d,e,f} {
+        \filldraw[fill=green!60!black, draw=black] (\i) circle (0.11);
+      }
+    \end{tikzpicture}
+
+    {\scriptsize barrido en $p$ y $K$}
+  \end{minipage}
+  \hfill
+  \begin{minipage}[t]{0.32\textwidth}
+    \centering
+    \textbf{Anillo}\\[0.05cm]
+    \begin{tikzpicture}[scale=0.8]
+      \foreach \k/\ang in {1/90,2/45,3/0,4/-45,5/-90,6/-135,7/180,8/135} {
+        \coordinate (n\k) at (\ang:1.15);
+      }
+      \foreach \u/\v in {n1/n2,n2/n3,n3/n4,n4/n5,n5/n6,n6/n7,n7/n8,n8/n1,n1/n3,n3/n5,n5/n7,n7/n1} {
+        \draw[gray!55] (\u) -- (\v);
+      }
+      \foreach \k in {1,...,8} {
+        \filldraw[fill=orange!85, draw=black] (n\k) circle (0.10);
+      }
+    \end{tikzpicture}
+
+    {\scriptsize barrido en $v$ y $K$}
+  \end{minipage}
+
+  \vspace{0.18cm}
+  \small
+  Cada modalidad cambia solo la conectividad $A_{ij}$ y mantiene la misma din\'amica de fase.
+\end{frame}
+
+\begin{frame}{Par\'ametros del estudio}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.48\textwidth}
+    \small
+    \textbf{Par\'ametros fijos}
+    \begin{itemize}
+      \item $N = 600$
+      \item $dt = 10^{-3}$
+      \item Integraci\'on RK4
+      \item M\'as de 10 realizaciones por punto
+    \end{itemize}
+
+    \column{0.48\textwidth}
+    \small
+    \textbf{Barridos por topolog\'ia}
+    \begin{itemize}
+      \item Completa: $K \in [0,1]$, $t_{\mathrm{sim}} = 50$
+      \item Aleatoria: $p \in [0,1]$, $K \in [0,1]$, $t_{\mathrm{sim}} = 50$
+      \item Anillo: $v \in \{1,\dots,10\}$, $K \in [0,1]$, $t_{\mathrm{sim}} = 1500$
+    \end{itemize}
+
+    \vspace{0.12cm}
+    \textbf{Promedios}
+    \begin{itemize}
+      \item condiciones iniciales y frecuencias naturales
+      \item en red aleatoria, tambi\'en sobre la conectividad
+    \end{itemize}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Observables definidos}
+  \small
+  \textbf{Par\'ametro de orden}
+  \begin{equation*}
+    r(t) = \left| \frac{1}{N} \sum_j [\cos(\theta_j), \sin(\theta_j)] \right|
+  \end{equation*}
+
+  \textbf{Valor estacionario}
+  \begin{equation*}
+    r_{\infty} = \frac{1}{t_f - t_{\mathrm{est}}} \int_{t_{\mathrm{est}}}^{t_f} r(t)\,dt
+  \end{equation*}
+
+  \textbf{Tiempo de sincronizaci\'on}
+  \begin{equation*}
+    \tau_s = \min \left\{ t : \left|r(t') - r_{\infty}\right| < \varepsilon\ \forall\ t' \ge t \right\}
+  \end{equation*}
+\end{frame}
+
+% Seccion reservada para agregar los graficos cuando esten listos.
+\section{Resultados}
+
+\end{document}
