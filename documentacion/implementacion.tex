@@ -155,11 +155,11 @@ java KuramotoSim --N 600 --K 0.5 --topology complete \
                  --seed 42 --output complete_K0.5_seed42.csv \
                  --dumpEvery 10 --dumpPhases true
 
-# Red aleatoria, K=1, p=0.3, semillas separadas
-java KuramotoSim --N 600 --K 1.0 --topology random --p 0.3 \
+# Red aleatoria, K=0.1, p=0.1, semillas separadas
+java KuramotoSim --N 600 --K 0.1 --topology random --p 0.1 \
                  --dt 0.001 --tSim 50 \
                  --seed 42 --netSeed 7 \
-                 --output random_p0.3_K1_s42_n7.csv \
+                 --output random_p0.1_K0.1_s42_n7.csv \
                  --dumpPhases false
 
 # Red anillo, v=3  -- tSim mucho mayor por la fisica del anillo

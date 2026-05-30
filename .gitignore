@@ -498,3 +498,11 @@ FodyWeavers.xsd
 # Additional files built by Visual Studio
 
 # End of https://www.toptal.com/developers/gitignore/api/macos,visualstudio,java,linux,windows
+
+### TP5 — outputs y artefactos generados (no se commitean: pesados y regenerables) ###
+# Salidas de simulación (CSVs, edges, gifs intermedios)
+/tp5-output/
+# Gráficos y animaciones regenerables (las figuras finales viven en documentacion/figures)
+/tp5-visual/graphs/
+/tp5-visual/animations/
+*.gif

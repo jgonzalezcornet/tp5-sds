@@ -74,7 +74,7 @@ El término $\sin(\theta_j - \theta_i)$ \textbf{atrae} fases cercanas, mientras 
 
 \begin{description}[leftmargin=1.1cm,style=nextline]
   \item[(a) Red totalmente conectada] $A_{ij}=1\ \forall i\neq j$. \emph{All-to-all coupling}, el esquema más simple \cite{ND-Ch12}.
-  \item[(b) Red aleatoria (Erdős--Rényi)] $A_{ij}=1$ con probabilidad $p\in[0,1]$ (al menos 10 valores). Grado medio $\langle k \rangle = p(N-1)$.
+  \item[(b) Red aleatoria (Erdős--Rényi)] $A_{ij}=1$ con probabilidad $p\in[10^{-4},10^{-1}]$ (al menos 10 valores distribuidos logarítmicamente). Grado medio $\langle k \rangle = p(N-1)$.
   \item[(c) Red anillo] $A_{ij}=1$ sii $j \in \{i-v,\ldots,i-1,i+1,\ldots,i+v\}$ con índices periódicos, $v\in[1,10]$.
 \end{description}
 
@@ -127,8 +127,8 @@ $A_{ij}=1\ \forall i\neq j$. Barrer $K\in[0,1]$. Para cada $K$: \textbf{$>10$ re
 \textbf{(b) Red aleatoria (Erdős--Rényi):}
 $A_{ij}=1$ con probabilidad $p$, $0$ en otro caso ($\forall i\neq j$).
 \begin{itemize}
-  \item $p \in [0, 1]$, \textbf{al menos 10 valores}.
-  \item Para análisis de $r(p)$: fijar $K=1$.
+  \item $p \in [10^{-4}, 10^{-1}]$, \textbf{al menos 10 valores distribuidos logarítmicamente}.
+  \item Para análisis de $r(p)$: fijar $K=0.1$.
   \item Por cada par $(p, K)$: \textbf{$>10$ realizaciones} independientes de la red $A_{ij}$ \emph{y} de las condiciones iniciales.
   \item Mapas 2D: $r_\infty$ y $\tau_s$ como función de $(p, K)$.
 \end{itemize}
@@ -138,7 +138,7 @@ $A_{ij}=1$ con probabilidad $p$, $0$ en otro caso ($\forall i\neq j$).
 $A_{ij}=1$ sii $j \in \{i-v,\ldots,i-1,i+1,\ldots,i+v\}$, índices periódicos (mod $N$).
 \begin{itemize}
   \item $v \in [1, 10]$ entero (vecindad a cada lado).
-  \item Para análisis de $r(v)$: fijar $K=1$.
+  \item Para análisis de $r(v)$: fijar $K=0.1$.
   \item Por cada par $(v, K)$: \textbf{$>10$ realizaciones} independientes de las condiciones iniciales.
   \item Mapas 2D: $r_\infty$ y $\tau_s$ como función de $(v, K)$.
 \end{itemize}

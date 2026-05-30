@@ -1,0 +1,327 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\graphicspath{{figures/}}
+
+\title{Documentación de gráficos --- TP5 Kuramoto}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section*{Parámetros comunes a todas las simulaciones}
+
+Estos valores son idénticos en los tres barridos (ver \texttt{run\_complete.py}, \texttt{run\_random.py}, \texttt{run\_ring.py}):
+
+\begin{itemize}
+  \item $N = 600$ osciladores.
+  \item Frecuencias naturales gaussianas con $\mu_\omega = 1.0$, $\sigma_\omega = 0.1$.
+  \item $dt = 0.001$ (paso de integración RK4).
+  \item 12 realizaciones (\texttt{seed = 1000..1011}) por punto del barrido; las curvas son promedios y las barras de error son la desviación estándar entre realizaciones.
+  \item $r_\infty$: promedio de $r(t)$ en el último 20\,\% de la corrida.
+  \item $\tau$: primer tiempo en que $r(t)$ suavizado alcanza $0.95\,r_\infty$. Sólo se promedia sobre realizaciones que sincronizan ($r_{\text{late}} > 0.5$) y al menos 3 de las 12.
+\end{itemize}
+
+\section*{Acoplamiento crítico $K_c$}
+
+La ecuación que integra el motor (\texttt{Dynamics.java:18}) es
+\[
+  \frac{d\theta_i}{dt} = \omega_i + K \sum_{j \in \mathcal{N}(i)} \sin(\theta_j - \theta_i),
+\]
+donde $K$ multiplica directamente la suma sobre vecinos (sin dividir por $N$ ni por el grado).
+
+El análisis de campo medio del modelo de Kuramoto predice una transición a sincronización cuando el \emph{empuje total} que siente cada oscilador supera un umbral. En esta convención el empuje promedio sobre el oscilador $i$ escala como $K\,\langle k\rangle$, donde $\langle k\rangle$ es el grado promedio de la red. La condición de transición es
+\[
+  K_c \cdot \langle k\rangle = \sigma\,\sqrt{8/\pi},
+\]
+de donde
+\[
+  \boxed{\,K_c = \frac{\sigma\,\sqrt{8/\pi}}{\langle k\rangle}\,}.
+\]
+Con $\sigma = 0{,}1$ esto da $K_c \approx 0{,}16/\langle k\rangle$. \textbf{$K_c$ depende de la topología} a través de $\langle k\rangle$:
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{lcc}
+    \toprule
+    \textbf{Topología} & $\langle k \rangle$ con $N=600$ & $K_c$ \\
+    \midrule
+    Completa & 599 & $\sim 2{,}7\cdot 10^{-4}$ \\
+    Aleatoria $p=1$ & 599 & $\sim 2{,}7\cdot 10^{-4}$ \\
+    Aleatoria $p=0{,}1$ & $\sim 60$ & $\sim 2{,}7\cdot 10^{-3}$ \\
+    Aleatoria $p=0{,}01$ & $\sim 6$ & $\sim 0{,}03$ \\
+    Aleatoria $p=10^{-4}$ & $\sim 0{,}06$ & (red fragmentada) \\
+    Anillo $v=10$ & 20 & $\sim 8\cdot 10^{-3}$ \\
+    Anillo $v=1$ & 2 & $\sim 0{,}08$ \\
+    \bottomrule
+  \end{tabular}
+  \caption{$K_c$ estimado para cada topología.}
+\end{table}
+
+Por eso los barridos en $K$ son distintos según la topología: para la red completa se barre desde $10^{-4}$ (la transición está en $\sim 3\cdot 10^{-4}$), para la aleatoria se barre desde $10^{-3}$, y para el anillo desde $10^{-2}$.
+
+\subsection*{Efectos topológicos más allá de $K_c$}
+
+Que $K$ supere $K_c$ efectivo es \textbf{necesario pero no suficiente} para sincronizar globalmente, sobre todo en topologías esparsas:
+
+\begin{itemize}
+  \item \textbf{Aleatoria con $p < p_c \approx \ln N / N \approx 0{,}011$}: la red está fragmentada (no hay componente gigante). Aunque $K \to \infty$, las fases de componentes desconectadas no pueden comunicarse y $r$ no llega a 1.
+  \item \textbf{Anillo con $v$ chico}: aun siendo conexo, el anillo soporta \emph{estados twisted} (la fase da una o más vueltas a lo largo del anillo). Son mínimos locales del paisaje energético, estables, en los que el sistema queda atrapado por tiempo muy largo. Además la información se propaga sólo entre vecinos cercanos, así que los transitorios son enormes (de ahí $t_{\text{sim}} = 1500$ en lugar de 50).
+\end{itemize}
+
+Estos efectos no se reducen a "más $K$ siempre sincroniza"; la geometría de la red impone restricciones propias.
+
+\section*{¿Por qué usamos escala logarítmica en $K$, $p$ y $\tau$?}
+
+Porque el barrido de esos parámetros cubre varios órdenes de magnitud y, en escala lineal, los puntos chicos quedarían aplastados contra el origen. Por ejemplo, el barrido en $K$ va de $10^{-4}$ a $1$ (4 órdenes); en escala lineal todos los valores $0.0001,\,0.001,\,0.01$ son visualmente indistinguibles de cero comparados con $1$, y la transición de fase se ve como un único salto sin estructura.
+
+En escala logarítmica cada orden de magnitud ocupa el mismo ancho en el eje, los puntos quedan equiespaciados, y se ve la forma real de la transición. Hay además un motivo físico: cuando exploramos un fenómeno cuyo valor crítico no conocemos a priori, lo natural es muestrear logarítmicamente (más puntos densos en los valores chicos), y el gráfico simplemente respeta cómo fue diseñado el barrido.
+
+Por eso:
+\begin{itemize}
+  \item $K$ y $p$ se grafican en log (barridos sobre 3--4 órdenes de magnitud).
+  \item $\tau$ se grafica en log sólo en la comparativa entre topologías, porque entre completa y anillo difieren en órdenes de magnitud.
+  \item $v$ (vecindad del anillo) se grafica en lineal: va de 1 a 10, valores enteros, un único orden de magnitud.
+  \item $r$ se grafica en lineal porque está acotado a $[0, 1]$ por definición.
+\end{itemize}
+
+\section*{¿Por qué no muestreamos linealmente $K$ y $p$ en $[0, 1]$?}
+
+El enunciado pide al menos 10 puntos en $[0, 1]$. Un muestreo lineal del tipo $K = 0.1, 0.2, \ldots, 1.0$ cumple la letra de la consigna pero produce un gráfico sin información útil. Veamos por qué para cada parámetro.
+
+\paragraph{Caso $K$ (red completa).} El acoplamiento crítico es $K_c \approx 2{,}7\cdot 10^{-4}$ (ver sección anterior). Un muestreo lineal $K = 0.1, 0.2, \ldots, 1.0$ deja \textbf{los 10 puntos varios órdenes de magnitud por encima de $K_c$} y todos dan $r \approx 1$. La transición no se ve en ningún lado.
+
+\paragraph{Caso $p$ (red aleatoria).} Para Erd\H{o}s--Rényi con $N$ nodos, la red se vuelve conexa alrededor del umbral
+\[
+  p_c \sim \frac{\ln N}{N}.
+\]
+Con $N = 600$ eso da $p_c \approx 0.011$. Es decir, \textbf{toda la física interesante ocurre en $p \sim 10^{-3}$--$10^{-2}$}. Un muestreo $p = 0.1, 0.2, \ldots, 1.0$ dejaría todos los puntos dos órdenes de magnitud por encima del umbral: la red ya está conectada en todos ellos y el gráfico sería esencialmente una línea horizontal en $r \approx 1$. El enunciado (versión 2) recoge exactamente este punto y prescribe muestrear $p \in [10^{-4}, 10^{-1}]$ con al menos 10 valores distribuidos logarítmicamente.
+
+Por eso el barrido es
+\[
+  p \in \{10^{-4},\,2\!\cdot\!10^{-4},\,5\!\cdot\!10^{-4},\,10^{-3},\,2\!\cdot\!10^{-3},\,5\!\cdot\!10^{-3},\,0.01,\,0.02,\,0.05,\,0.1\},
+\]
+10 valores log-equiespaciados dentro de $[10^{-4}, 10^{-1}]$, con la transición ($p_c \approx 0.011$) holgadamente cubierta.
+
+\paragraph{Criterio general.} Cuando no se conoce a priori dónde está la transición, conviene muestrear logarítmicamente: la resolución es uniforme en todas las escalas y la transición se ve igual de bien si cae en $10^{-4}$ o en $0.5$. El muestreo lineal sólo es razonable cuando ya se sabe que el fenómeno relevante vive en una escala particular. En este TP la teoría predice $K_c = \sigma\sqrt{8/\pi}/\langle k\rangle$ (que va desde $\sim 10^{-4}$ en redes densas hasta $\sim 10^{-1}$ en redes esparsas) y $p_c \approx \ln(N)/N$, así que el muestreo log se justifica explícitamente por la física conocida del problema.
+
+\section{Red totalmente conectada}
+
+Barrido en $K \in \{0,\,10^{-4},\,3\!\cdot\!10^{-4},\,5\!\cdot\!10^{-4},\,10^{-3},\,3\!\cdot\!10^{-3},\,0.01,\,0.03,\,0.1,\,0.3,\,1\}$. Es una grilla cuasi-logarítmica que cubre cuatro órdenes de magnitud, desde régimen incoherente ($K \ll K_c$) hasta sincronización completa ($K \gg K_c$). Se incluye $K = 0$ como control (sin acoplamiento, $r$ debe quedar acotado a $\sim 1/\sqrt{N}$).
+
+Tiempo de simulación corto ($t_{\text{sim}} = 50$) porque en la red completa la sincronización ocurre en pocas unidades de tiempo.
+
+\subsection{Evolución temporal del parámetro de orden}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\linewidth]{complete_rt.png}
+  \caption{$r(t)$ para cada valor de $K$, promediado sobre 12 seeds.}
+\end{figure}
+
+\begin{itemize}
+  \item \textbf{Eje X}: tiempo (0 a 50).
+  \item \textbf{Eje Y}: parámetro de orden $r(t) \in [0, 1]$ (0 = fases uniformes, 1 = todas en fase).
+  \item \textbf{Curvas}: una por cada $K$ del barrido. El colormap viridis ordena de $K$ bajo (incoherente, $r$ chico) a $K$ alto (sincronización rápida, $r \to 1$).
+\end{itemize}
+
+Se observa la transición de fase: para $K$ pequeños $r$ queda bajo; al cruzar $K_c$ aparece la rama sincronizada y se estabiliza en un plateau cercano a 1.
+
+\subsection{Curva de bifurcación $r_\infty(K)$}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.75\linewidth]{complete_rK.png}
+  \caption{Parámetro de orden estacionario en función de $K$.}
+\end{figure}
+
+\begin{itemize}
+  \item \textbf{Eje X}: $K$ en escala \textbf{logarítmica} (porque el barrido cubre 4 órdenes de magnitud).
+  \item \textbf{Eje Y}: $r_\infty(K)$ con barras de error (std entre seeds). Limitado a $[0, 1.05]$.
+\end{itemize}
+
+La teoría de Kuramoto predice que, cerca del acoplamiento crítico, el parámetro de orden estacionario crece como
+\[
+  r_\infty(K) \approx \sqrt{\frac{K - K_c}{K_c}} \quad \text{para } K \gtrsim K_c,
+\]
+y vale aproximadamente cero para $K < K_c$. Por eso, si se grafica $r_\infty$ vs $K$ en eje lineal, se observa una rama plana en cero hasta $K_c$ y luego una rama tipo raíz cuadrada que sube hasta saturar cerca de 1; esta es la forma característica de la transición.
+
+En nuestro gráfico el eje $K$ es logarítmico, por lo que esa raíz cuadrada se ve comprimida y aparece visualmente como un \textbf{salto abrupto}: los puntos a la izquierda de $K_c \approx 2{,}7\cdot 10^{-4}$ quedan pegados a 0 y los de la derecha cerca de 1.
+
+El punto $K = 0$ del barrido (incluido como control sin acoplamiento) se descarta de este gráfico porque $\log(0) = -\infty$ y no se puede ubicar en el eje. El código filtra explícitamente los $K > 0$ antes de graficar.
+
+\subsection{Tiempo de sincronización $\tau(K)$}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.75\linewidth]{complete_tauK.png}
+  \caption{Tiempo de sincronización en función de $K$.}
+\end{figure}
+
+\begin{itemize}
+  \item \textbf{Eje X}: $K$ en escala logarítmica.
+  \item \textbf{Eje Y}: $\tau$ (tiempo en alcanzar el 95\,\% de $r_\infty$).
+\end{itemize}
+
+Sólo se grafican los $K$ donde al menos 3 de 12 realizaciones sincronizaron, por eso aparecen menos puntos que en $r_\infty(K)$. $\tau$ diverge cerca de $K_c$ (\textit{critical slowing down}) y decae para $K$ grande.
+
+\section{Red aleatoria de Erd\H{o}s--Rényi}
+
+Barridos:
+\begin{itemize}
+  \item $p \in \{10^{-4},\,2\!\cdot\!10^{-4},\,5\!\cdot\!10^{-4},\,10^{-3},\,2\!\cdot\!10^{-3},\,5\!\cdot\!10^{-3},\,0.01,\,0.02,\,0.05,\,0.1\}$ --- escala log, 10 valores en $[10^{-4}, 10^{-1}]$ (rango fijado por el enunciado v2); cubre desde redes esparsas y fragmentadas (grado medio $\langle k\rangle = p(N-1) \approx 0.06$ en $p=10^{-4}$) hasta $p = 0.1$ ($\langle k\rangle \approx 60$, ya bien conectada).
+  \item $K \in \{10^{-3},\,3\!\cdot\!10^{-3},\,0.01,\,0.03,\,0.1,\,0.3,\,1.0\}$ --- escala log, alrededor y por encima de $K_c$.
+\end{itemize}
+
+Tiempo de simulación $t_{\text{sim}} = 50$, igual que la completa: en cuanto la red tenga una componente gigante densa la dinámica se parece a la completa.
+
+\subsection{Corte $r_\infty(p)$ a $K = 0.1$}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.75\linewidth]{random_rp.png}
+  \caption{$r_\infty(p)$ fijando $K = 0.1$ (valor fijado por el enunciado v2).}
+\end{figure}
+
+\begin{itemize}
+  \item \textbf{Eje X}: probabilidad de conexión $p$, escala log (porque el barrido es log).
+  \item \textbf{Eje Y}: $r_\infty(p)$ con barras de error.
+\end{itemize}
+
+Muestra cómo, fijado $K = 0.1$, la sincronización depende de la conectividad. Para $p \lesssim 10^{-3}$ la red está fragmentada y $r$ queda pegado a $\sim 1/\sqrt{N}$; la transición ocurre alrededor de $p \approx p_c \approx 0.011$ y, para $p \gtrsim 0.02$, la red ya tiene una componente gigante densa y $r \to 1$. A este $K$ moderado el salto coincide con el umbral de percolación de Erd\H{o}s--Rényi, no con el de acoplamiento.
+
+\subsection{Mapa de calor $r_\infty(p, K)$}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\linewidth]{random_rpK.png}
+  \caption{Diagrama de fases en el plano $(p, K)$.}
+\end{figure}
+
+\begin{itemize}
+  \item \textbf{Eje X}: $p$ (log).
+  \item \textbf{Eje Y}: $K$ (log).
+  \item \textbf{Color}: $r_\infty$ (viridis, 0 $\to$ 1).
+\end{itemize}
+
+La frontera diagonal separa la región sincronizada (arriba-derecha, $K$ y $p$ altos) de la incoherente (abajo-izquierda). Ambos ejes son log porque los dos barridos lo son.
+
+\subsection{Mapa de calor $\tau(p, K)$}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\linewidth]{random_taupK.png}
+  \caption{Tiempo de sincronización en el plano $(p, K)$.}
+\end{figure}
+
+Mismo dominio que el anterior; el color (plasma) representa $\tau$. Las celdas en blanco/NaN son combinaciones $(p, K)$ donde menos de 3 realizaciones sincronizaron y no se calcula $\tau$.
+
+\section{Red en anillo con vecindad $v$}
+
+Barridos:
+\begin{itemize}
+  \item $v \in \{1, 2, \ldots, 10\}$ --- entero, escala lineal. Cada nodo conecta a sus $v$ vecinos a cada lado (grado $= 2v$).
+  \item $K \in \{0.01,\,0.03,\,0.05,\,0.1,\,0.2,\,0.3,\,0.5,\,1.0\}$ --- escala log, más fina cerca de $K_c$ porque la transición es más sensible en anillos.
+\end{itemize}
+
+Tiempo de simulación $t_{\text{sim}} = 1500$ (30$\times$ más largo que las otras topologías): los anillos tienen transitorios muy largos porque la información se propaga sólo a vecinos cercanos y los modos de fase tardan en homogeneizarse.
+
+\subsection{Corte $r_\infty(v)$ a $K = 0.1$}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.75\linewidth]{ring_rv.png}
+  \caption{$r_\infty(v)$ fijando $K = 0.1$ (valor fijado por el enunciado v2).}
+\end{figure}
+
+\begin{itemize}
+  \item \textbf{Eje X}: vecindad $v$ (lineal, valores enteros).
+  \item \textbf{Eje Y}: $r_\infty(v)$ con barras de error.
+\end{itemize}
+
+A $K = 0.1$ la sincronización depende fuertemente de cuántos vecinos ve cada oscilador, pero el acoplamiento ya no es lo bastante grande como para sincronizar globalmente dentro del rango de $v$ estudiado: $r_\infty$ crece de forma aproximadamente monótona con $v$ (de $\sim 0.06$ en $v=1$ a $\sim 0.42$ en $v=10$) sin llegar a saturar en 1. Con $v = 1$ la red es casi 1D y la sincronización global es muy difícil; al aumentar $v$ el grafo se acerca a la red completa y $r$ sube, pero a este $K$ moderado haría falta $v$ (o $K$) más grande para alcanzar $r \approx 1$. Las barras de error crecen con $v$ porque, cerca de la transición, distintas realizaciones quedan atrapadas en estados parcialmente sincronizados o \emph{twisted} diferentes.
+
+\subsection{Mapa de calor $r_\infty(v, K)$}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\linewidth]{ring_rvK.png}
+  \caption{Diagrama de fases en el plano $(v, K)$.}
+\end{figure}
+
+\begin{itemize}
+  \item \textbf{Eje X}: $v$ lineal (entero).
+  \item \textbf{Eje Y}: $K$ log.
+  \item \textbf{Color}: $r_\infty$.
+\end{itemize}
+
+La frontera sincronización/incoherencia se desplaza hacia $K$ más altos cuando $v$ baja, mostrando que la topología ``anillo estrecho'' exige más acoplamiento.
+
+\subsection{Mapa de calor $\tau(v, K)$}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\linewidth]{ring_tauvK.png}
+  \caption{Tiempo de sincronización en el plano $(v, K)$.}
+\end{figure}
+
+Mismo dominio; color (plasma) $= \tau$. Las celdas vacías son puntos donde no sincroniza lo suficiente como para definir $\tau$. Los $\tau$ típicos son mucho más grandes que en la completa o aleatoria, por eso $t_{\text{sim}}$ se subió a 1500.
+
+\section{Comparativa entre topologías}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\linewidth]{comparativa.png}
+  \caption{$\tau(K)$ para las tres topologías tomando la red aleatoria a $p = 1$.}
+\end{figure}
+
+\begin{itemize}
+  \item \textbf{Eje X}: $K$, escala log.
+  \item \textbf{Eje Y}: $\tau$, escala log.
+  \item \textbf{Series}: completa, aleatoria ($p = 1$), anillo ($v = 10$), cada una con barras de error.
+\end{itemize}
+
+Esta primera versión toma la red aleatoria a $p = 1$ (equivalente a la red completa) como referencia del régimen plenamente conectado. La curva log-log permite ver el escaleo de $\tau$ con $K$: pendientes similares en completa y aleatoria, y un offset hacia arriba para el anillo aún con $v = 10$.
+
+Como el enunciado v2 acota la red aleatoria a $p \in [10^{-4}, 10^{-1}]$, $p = 1$ queda fuera de ese rango. Por eso se incluye además una comparativa análoga tomando la red aleatoria en su régimen \emph{más conectado dentro de la especificación}, $p = 0.1$:
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\linewidth]{comparativa_p0.1.png}
+  \caption{$\tau(K)$ para las tres topologías tomando la red aleatoria a $p = 0.1$ (dentro del rango del enunciado v2).}
+\end{figure}
+
+A $p = 0.1$ el grado medio es $\langle k\rangle \approx 60$ (frente a $599$ en la red completa), de modo que la red aleatoria sincroniza sistemáticamente más lento que la completa --- un offset de aproximadamente un orden de magnitud en $\tau$ --- pero conserva la misma pendiente de $\tau(K)$. El anillo ($v=10$, $\langle k\rangle = 20$) sigue siendo el más lento de los tres, varios órdenes de magnitud por encima.
+
+\section{Resumen de elecciones de eje}
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{lll}
+    \toprule
+    \textbf{Eje} & \textbf{Tipo} & \textbf{Motivo} \\
+    \midrule
+    $t$               & lineal           & rango acotado y resolución uniforme \\
+    $r$               & lineal $[0, 1.05]$ & está acotado por definición \\
+    $K$               & log              & barrido cubre 3--4 órdenes de magnitud alrededor de $K_c$ \\
+    $p$               & log              & barrido cubre 4 órdenes de magnitud \\
+    $v$               & lineal           & entero pequeño (1--10), no tiene sentido log \\
+    $\tau$ (por topología) & lineal      & rango moderado dentro de una topología \\
+    $\tau$ (comparativa)   & log         & diferencias de órdenes de magnitud entre topologías \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\end{document}
