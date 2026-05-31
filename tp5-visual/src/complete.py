@@ -36,7 +36,7 @@ def plot_rt(by_K):
         r_mean = rs.mean(axis=0)
         color = cmap(i / max(1, len(Ks) - 1))
         ax.plot(t, r_mean, color=color, label=f"K = {K:g}")
-    ax.set_xlabel("Tiempo (s)")
+    ax.set_xlabel("t (s)")
     ax.set_ylabel("r")
     ax.set_ylim(0, 1.05)
     ax.legend(loc="lower right", fontsize=14, ncol=2)

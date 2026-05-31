@@ -21,11 +21,29 @@
 
 \newcommand{\vct}[1]{\mathbf{#1}}
 
-\title[TP5 - Kuramoto]{TP5: comportamiento colectivo}
-\subtitle{Sistema 1: sincronizaci\'on de fases en redes neuronales}
-\author[Grupo]{Grupo Nro. XX}
-\institute[ITBA]{72.25 - Simulaci\'on de Sistemas}
-\date{2026 1C}
+% Para cambiar a imagenes reales: reemplazar \figph{...} por
+% \includegraphics[height=0.80\textheight]{archivo}.
+\graphicspath{{../tp5-visual/graphs/}}
+\newcommand{\figph}[2][0.80]{%
+  \centering
+  \fbox{\begin{minipage}[c][#1\textheight][c]{0.96\textwidth}%
+    \centering\ttfamily\scriptsize [#2]%
+  \end{minipage}}\par}
+\newcommand{\casefoot}[1]{\par\vspace{3pt}{\centering\small #1\par}}
+
+\title[TP5 - Oscilador de Kuramoto]{TP5 - Sincronización de fases en redes neuronales: Oscilador de Kuramoto}
+\subtitle{72.25 - Simulación de Sistemas}
+\author[J. Birsa, J. Gonzalez Cornet, F. Magri]{
+  Juan Pablo Birsa\inst{1} \and 
+  Josefina Gonzalez Cornet\inst{2} \and 
+  Federico José Magri\inst{3}
+}
+\institute[ITBA]{
+  \inst{1} jbirsa@itba.edu.ar (64500) \\
+  \inst{2} jgonzalezcornet@itba.edu.ar (64550) \\
+  \inst{3} fmagri@itba.edu.ar (64508) \\
+}
+\date{2026 1C | Grupo Nº5}
 
 \makeatletter
 \beamer@theme@subsectionfalse
@@ -86,7 +104,7 @@
     \column{0.48\textwidth}
     \begin{itemize}
       \item $\theta_i$: fase de la neurona $i$.
-      \item $\omega_i$: frecuencia natural.
+      \item $\omega_i$: frecuencia natural de la neurona $i$.
       \item $K$: intensidad de acoplamiento global.
     \end{itemize}
 
@@ -102,7 +120,7 @@
   \begin{itemize}
     \item $\omega_i \sim \mathcal{N}(1, 0.1^2)$
     \item $\theta_i(0) \sim \mathcal{U}[0, 2\pi)$
-    \item La topolog\'ia queda codificada en $A_{ij}$.
+    % \item La topolog\'ia queda codificada en $A_{ij}$.
   \end{itemize}
 \end{frame}
 
@@ -130,11 +148,7 @@
   \end{tikzpicture}
 
   \vspace{0.08cm}
-  \footnotesize
-  \begin{itemize}
-    \item Estado del sistema: arreglos \texttt{theta}, \texttt{omega} y lista de vecinos \texttt{nbr}.
-    \item Salida: CSV con $t$, $r(t)$ y fases opcionales para postproceso.
-  \end{itemize}
+
 \end{frame}
 
 \begin{frame}{Algoritmo implementado}
@@ -156,7 +170,7 @@
   \end{algorithm}
 
   \vspace{0.05cm}
-  {\footnotesize \texttt{Dynamics} precomputa $\sin(\theta_j)$ y $\cos(\theta_j)$ para evaluar el acoplamiento; \texttt{Output} calcula $r(t)$ en cada dump.}
+  {\footnotesize El acoplamiento se evalúa precomputando $\sin(\theta_j)$ y $\cos(\theta_j)$ una sola vez por paso; $r(t)$ se calcula únicamente en cada dump.}
 \end{frame}
 
 \section{Simulaciones}
@@ -229,32 +243,33 @@
 
 \begin{frame}{Par\'ametros del estudio}
   \begin{columns}[T,onlytextwidth]
-    \column{0.48\textwidth}
+    \hspace{0.5cm}
+    \column{0.4\textwidth}
     \small
     \textbf{Par\'ametros fijos}
     \begin{itemize}
       \item $N = 600$
       \item $dt = 10^{-3}$
-      \item Integraci\'on RK4
-      \item M\'as de 10 realizaciones por punto
     \end{itemize}
 
-    \column{0.48\textwidth}
+    \column{0.6\textwidth}
     \small
-    \textbf{Barridos por topolog\'ia}
+    \textbf{Variables}
     \begin{itemize}
-      \item Completa: $K \in [0,1]$, $t_{\mathrm{sim}} = 50$
-      \item Aleatoria: $p \in [0,1]$, $K \in [0,1]$, $t_{\mathrm{sim}} = 50$
-      \item Anillo: $v \in \{1,\dots,10\}$, $K \in [0,1]$, $t_{\mathrm{sim}} = 1500$
-    \end{itemize}
-
-    \vspace{0.12cm}
-    \textbf{Promedios}
-    \begin{itemize}
-      \item condiciones iniciales y frecuencias naturales
-      \item en red aleatoria, tambi\'en sobre la conectividad
+      \item Completa: $K \in [0,1]$
+      \item Aleatoria: $p \in [10^{-4},10^{-1}]$
+      \item Anillo: $v \in \{1,\dots,10\}$
     \end{itemize}
   \end{columns}
+
+  \vspace{0.35cm}
+  \hspace{0.5cm}
+  \small
+  \textbf{Protocolo}
+  \begin{itemize}
+    \item 12 seeds por simulación
+    \item $t_{\mathrm{sim}}$: 50 s (completa, aleatoria), 1500 s (anillo)
+  \end{itemize}
 \end{frame}
 
 \begin{frame}{Observables definidos}
@@ -271,11 +286,94 @@
 
   \textbf{Tiempo de sincronizaci\'on}
   \begin{equation*}
-    \tau_s = \min \left\{ t : \left|r(t') - r_{\infty}\right| < \varepsilon\ \forall\ t' \ge t \right\}
+    \tau_s = \min \left\{ t : \tilde{r}(t) \ge 0.95\, r_{\infty} \right\}
   \end{equation*}
+
+  {\footnotesize $\tilde{r}$: $r(t)$ suavizada con media m\'ovil; $\tau_s$ es el primer instante en que alcanza el $95\%$ de $r_{\infty}$.}
 \end{frame}
 
-% Seccion reservada para agregar los graficos cuando esten listos.
 \section{Resultados}
+
+% ===================== Red totalmente conectada =====================
+\begin{frame}{Red completa --- animaci\'on}
+  \centering
+  \includegraphics[height=0.72\textheight]{frame_complete_K0.5.png}
+  \casefoot{$K = 0.5$ \quad \href{run:../tp5-visual/animations/ring_anim_complete_K0.5.gif}{[ver animaci\'on]}}
+\end{frame}
+
+\begin{frame}{Red completa --- evoluci\'on temporal $r(t)$}
+  \centering
+  \includegraphics[height=0.80\textheight]{complete/rt.png}
+\end{frame}
+
+\begin{frame}{Red completa --- par\'ametro de orden estacionario $r_\infty(K)$}
+  \centering
+  \includegraphics[height=0.80\textheight]{complete/rK.png}
+\end{frame}
+
+\begin{frame}{Red completa --- tiempo de sincronizaci\'on $\tau_s(K)$}
+  \centering
+  \includegraphics[height=0.80\textheight]{complete/tauK.png}
+\end{frame}
+
+% ===================== Red aleatoria =====================
+\begin{frame}{Red aleatoria --- animaci\'on}
+  \centering
+  \includegraphics[height=0.72\textheight]{frame_random_p0.005_K0.5_subgraphs.png}
+  \casefoot{$p = 0.005$ \quad $K = 0.5$ \quad \href{run:../tp5-visual/animations/ring_anim_random_p0.005_K0.5_subgraphs.gif}{[ver animaci\'on]}}
+\end{frame}
+
+\begin{frame}{Red aleatoria --- mapa $r_\infty(p,K)$}
+  \centering
+  \includegraphics[height=0.80\textheight]{random/heatmap_rpK.png}
+\end{frame}
+
+\begin{frame}{Red aleatoria --- mapa $\tau_s(p,K)$}
+  \centering
+  \includegraphics[height=0.80\textheight]{random/heatmap_taupK.png}
+\end{frame}
+
+\begin{frame}{Red aleatoria --- $r_\infty(p)$}
+  \centering
+  \includegraphics[height=0.72\textheight]{random/rp_Kcut.png}
+  \casefoot{$K = 0.1$}
+\end{frame}
+
+% ===================== Red anillo =====================
+\begin{frame}{Red anillo --- animaci\'on}
+  \centering
+  \includegraphics[height=0.72\textheight]{frame_ring_v5_K1.png}
+  \casefoot{$v = 5$ \quad $K = 1$ \quad \href{run:../tp5-visual/animations/ring_anim_ring_v5_K1.gif}{[ver animaci\'on]}}
+\end{frame}
+
+\begin{frame}{Red anillo --- mapa $r_\infty(v,K)$}
+  \centering
+  \includegraphics[height=0.80\textheight]{ring/heatmap_rvK.png}
+\end{frame}
+
+\begin{frame}{Red anillo --- mapa $\tau_s(v,K)$}
+  \centering
+  \includegraphics[height=0.80\textheight]{ring/heatmap_tauvK.png}
+\end{frame}
+
+\begin{frame}{Red anillo --- $r_\infty(v)$}
+  \centering
+  \includegraphics[height=0.72\textheight]{ring/rv_Kcut.png}
+  \casefoot{$K = 0.1$}
+\end{frame}
+
+% ===================== Comparativo =====================
+\begin{frame}{Tiempo de sincronizaci\'on: comparaci\'on entre topolog\'ias}
+  \centering
+  \includegraphics[height=0.72\textheight]{tau_comparison_p0.1.png}
+  \casefoot{$p = 0.1$}
+\end{frame}
+
+% ===================== Cierre =====================
+\begin{frame}
+  \begin{beamercolorbox}[sep=8pt,center]{title}
+    \usebeamerfont{title}Muchas gracias
+  \end{beamercolorbox}
+\end{frame}
 
 \end{document}

@@ -47,7 +47,7 @@ def plot_rp_Kcut(by_pK):
     fig, ax = plt.subplots()
     ax.errorbar(ps, r_mean, yerr=r_std, fmt="o-", color="C0", capsize=5)
     ax.set_xscale("log")
-    ax.set_xlabel("Probabilidad de conexión")
+    ax.set_xlabel("p")
     ax.set_ylabel("r")
     ax.set_ylim(0, 1.05)
     out = OUT_DIR / "rp_Kcut.png"
@@ -65,7 +65,7 @@ def heatmap(values, ps, Ks, label, out_name, cmap="viridis"):
     cb.set_label(label)
     ax.set_xscale("log")
     ax.set_yscale("log")
-    ax.set_xlabel("Probabilidad de conexión")
+    ax.set_xlabel("p")
     ax.set_ylabel("K")
     out = OUT_DIR / out_name
     fig.savefig(out)

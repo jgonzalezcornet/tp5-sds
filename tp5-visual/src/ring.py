@@ -39,7 +39,7 @@ def plot_rv_Kcut(by_vK):
         r_std[i] = np.std(vals)
     fig, ax = plt.subplots()
     ax.errorbar(vs, r_mean, yerr=r_std, fmt="o-", color="C0", capsize=5)
-    ax.set_xlabel("Vecindad")
+    ax.set_xlabel("v")
     ax.set_ylabel("r")
     ax.set_ylim(0, 1.05)
     out = OUT_DIR / "rv_Kcut.png"
@@ -56,7 +56,7 @@ def heatmap(values, vs, Ks, label, out_name, cmap="viridis"):
     cb = fig.colorbar(mesh, ax=ax)
     cb.set_label(label)
     ax.set_yscale("log")
-    ax.set_xlabel("Vecindad")
+    ax.set_xlabel("v")
     ax.set_ylabel("K")
     out = OUT_DIR / out_name
     fig.savefig(out)
