@@ -47,6 +47,8 @@ def plot_rt(by_K):
 
 
 def plot_rK(by_K):
+    R_THRESHOLD = 0.99  # r value considered "full synchronization"
+
     Ks = sorted(by_K.keys())
     r_inf_mean = np.zeros(len(Ks))
     r_inf_std = np.zeros(len(Ks))
@@ -62,6 +64,34 @@ def plot_rK(by_K):
     pos = Ks_arr > 0
     ax.errorbar(Ks_arr[pos], r_inf_mean[pos], yerr=r_inf_std[pos],
                 fmt="o-", color="C0", capsize=5)
+
+    # --- Identify critical K_c: first K where r_inf reaches R_THRESHOLD ---
+    Ks_pos = Ks_arr[pos]
+    r_pos = r_inf_mean[pos]
+    Kc = None
+    for j in range(len(r_pos)):
+        if r_pos[j] >= R_THRESHOLD:
+            if j == 0:
+                Kc = Ks_pos[0]
+            else:
+                # Linear interpolation in log-K space for accuracy
+                log_K0 = np.log10(Ks_pos[j - 1])
+                log_K1 = np.log10(Ks_pos[j])
+                frac = (R_THRESHOLD - r_pos[j - 1]) / (r_pos[j] - r_pos[j - 1])
+                Kc = 10 ** (log_K0 + frac * (log_K1 - log_K0))
+            break
+
+    if Kc is not None:
+        ax.axvline(Kc, color="C3", linestyle="--", linewidth=1.5, zorder=3)
+        ax.text(
+            Kc, 0.5, f"  $K_c = {Kc:.4g}$",
+            fontsize=20, color="C3",
+            verticalalignment="center",
+            bbox=dict(boxstyle="round,pad=0.3", facecolor="white",
+                      edgecolor="C3", alpha=0.9),
+            zorder=4,
+        )
+
     ax.set_xscale("log")
     ax.set_xlabel("K")
     ax.set_ylabel("r")
