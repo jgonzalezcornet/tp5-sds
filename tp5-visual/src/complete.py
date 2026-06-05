@@ -9,11 +9,16 @@ import style  # noqa: F401
 from lib import OUT_ROOT, load_rt, r_stationary, tau_sync
 
 DATA_DIR = OUT_ROOT / "complete_Ksweep"
+FINE_DIR = OUT_ROOT / "complete_Ksweep_fine"
 OUT_DIR = Path(__file__).resolve().parent.parent / "graphs" / "complete"
 
+# Ventana de r_inf usada para ajustar K_c (region de escaleo: por encima del
+# piso incoherente ~1/sqrt(N) y por debajo de la saturacion).
+R_FIT_LO, R_FIT_HI = 0.15, 0.8
 
-def load_by_K():
-    files = sorted(DATA_DIR.glob("K*_seed*.csv"))
+
+def load_by_K(data_dir=DATA_DIR):
+    files = sorted(data_dir.glob("K*_seed*.csv"))
     by_K = {}
     for f in files:
         m = re.match(r"K([0-9.]+)_seed\d+\.csv", f.name)
@@ -47,8 +52,6 @@ def plot_rt(by_K):
 
 
 def plot_rK(by_K):
-    R_THRESHOLD = 0.99  # r value considered "full synchronization"
-
     Ks = sorted(by_K.keys())
     r_inf_mean = np.zeros(len(Ks))
     r_inf_std = np.zeros(len(Ks))
@@ -65,26 +68,26 @@ def plot_rK(by_K):
     ax.errorbar(Ks_arr[pos], r_inf_mean[pos], yerr=r_inf_std[pos],
                 fmt="o-", color="C0", capsize=5)
 
-    # --- Identify critical K_c: first K where r_inf reaches R_THRESHOLD ---
+    # --- K_c por escaleo del parametro de orden ---
+    # Cerca del umbral r_inf ~ sqrt((K - K_c)/K_c), es decir r_inf^2 es lineal
+    # en K. Se ajusta una recta a r_inf^2 vs K en la region de subida y K_c es
+    # su raiz (donde r^2 -> 0): el acoplamiento en que emerge la sincronizacion.
     Ks_pos = Ks_arr[pos]
     r_pos = r_inf_mean[pos]
+    band = (r_pos >= R_FIT_LO) & (r_pos <= R_FIT_HI)
     Kc = None
-    for j in range(len(r_pos)):
-        if r_pos[j] >= R_THRESHOLD:
-            if j == 0:
-                Kc = Ks_pos[0]
-            else:
-                # Linear interpolation in log-K space for accuracy
-                log_K0 = np.log10(Ks_pos[j - 1])
-                log_K1 = np.log10(Ks_pos[j])
-                frac = (R_THRESHOLD - r_pos[j - 1]) / (r_pos[j] - r_pos[j - 1])
-                Kc = 10 ** (log_K0 + frac * (log_K1 - log_K0))
-            break
+    if band.sum() >= 2:
+        Kfit = Ks_pos[band]
+        slope, intercept = np.polyfit(Kfit, r_pos[band] ** 2, 1)
+        Kc = -intercept / slope
+        Kline = np.linspace(Kc, Kfit.max(), 100)
+        ax.plot(Kline, np.sqrt(np.clip(slope * (Kline - Kc), 0, None)),
+                color="C3", linestyle=":", linewidth=1.5, zorder=3)
 
     if Kc is not None:
         ax.axvline(Kc, color="C3", linestyle="--", linewidth=1.5, zorder=3)
         ax.text(
-            Kc, 0.5, f"  $K_c = {Kc:.4g}$",
+            Kc, 0.5, f"  $K_c = {Kc:.2g}$",
             fontsize=20, color="C3",
             verticalalignment="center",
             bbox=dict(boxstyle="round,pad=0.3", facecolor="white",
@@ -134,7 +137,11 @@ def main():
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     by_K = load_by_K()
     out_rt, n_seeds = plot_rt(by_K)
-    out_rK = plot_rK(by_K)
+    by_K_rK = {**by_K}
+    if FINE_DIR.exists():
+        for K, files in load_by_K(FINE_DIR).items():
+            by_K_rK.setdefault(K, []).extend(files)
+    out_rK = plot_rK(by_K_rK)
     out_tauK = plot_tauK(by_K)
     print(f"saved -> {out_rt} (promedio sobre {n_seeds} realizaciones)")
     print(f"saved -> {out_rK}")

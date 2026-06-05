@@ -2,7 +2,7 @@ PWD /Users/josefinagonzalezcornet/Desktop/1c2026/sds/tp5-sds/presentacion
 INPUT /usr/local/texlive/2026/texmf.cnf
 INPUT /usr/local/texlive/2026/texmf-dist/web2c/texmf.cnf
 INPUT /usr/local/texlive/2026/texmf-var/web2c/pdftex/pdflatex.fmt
-INPUT /Users/josefinagonzalezcornet/Desktop/1c2026/sds/tp5-sds/presentacion/presentacion.tex
+INPUT presentacion.tex
 OUTPUT presentacion.log
 INPUT /usr/local/texlive/2026/texmf-dist/tex/latex/beamer/beamer.cls
 INPUT /usr/local/texlive/2026/texmf-dist/tex/latex/beamer/beamer.cls

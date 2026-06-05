@@ -1,8 +1,8 @@
 # Fdb version 4
-["pdflatex"] 1780667212.25471 "/Users/josefinagonzalezcornet/Desktop/1c2026/sds/tp5-sds/presentacion/presentacion.tex" "presentacion.pdf" "presentacion" 1780667213.74214 0
-  "../tp5-visual/graphs/complete/rK.png" 1780666535.02033 44513 bbbefdf0720dec919288e5364a3a5ce0 ""
-  "../tp5-visual/graphs/complete/rt.png" 1780666534.83768 100021 ddf8818f964e8dc3cb06327b1e43cf13 ""
-  "../tp5-visual/graphs/complete/tauK.png" 1780666535.17244 39028 7e24abf0324e711b16b42b0e37e918ac ""
+["pdflatex"] 1780669206.51071 "presentacion.tex" "presentacion.pdf" "presentacion" 1780669207.98857 0
+  "../tp5-visual/graphs/complete/rK.png" 1780668268.51426 47053 4964aba7d10195e050757c36de0ca0b3 ""
+  "../tp5-visual/graphs/complete/rt.png" 1780668268.25512 100021 ddf8818f964e8dc3cb06327b1e43cf13 ""
+  "../tp5-visual/graphs/complete/tauK.png" 1780668268.67561 39028 7e24abf0324e711b16b42b0e37e918ac ""
   "../tp5-visual/graphs/frame_complete_K0.5.png" 1780266060.47436 1705329 689290afa51764d9a9c47a01746b87da ""
   "../tp5-visual/graphs/frame_random_p0.005_K0.5_subgraphs.png" 1780265690.66283 955035 bd04073a29c32ba226b0248e32124d13 ""
   "../tp5-visual/graphs/frame_ring_v5_K1.png" 1780266061.84884 284166 30e9d7fabdf3d52113e267a157ba9634 ""
@@ -13,7 +13,6 @@
   "../tp5-visual/graphs/ring/heatmap_tauvK.png" 1780666539.50828 37645 cd0e2ad3a126a2b2cbe44a3761c2fa87 ""
   "../tp5-visual/graphs/ring/rv_Kcut.png" 1780666537.36475 35407 e7f165ce908e1c380405d08283f5b4bd ""
   "../tp5-visual/graphs/tau_comparison_p0.1.png" 1780666540.74345 75115 4128dbee6f315a6b68b9ff5a370b4793 ""
-  "/Users/josefinagonzalezcornet/Desktop/1c2026/sds/tp5-sds/presentacion/presentacion.tex" 1780667212.0104 11523 c5eba25cd6c745355bdc97b5089a974e ""
   "/usr/local/texlive/2026/texmf-dist/fonts/enc/dvips/cm-super/cm-super-t1.enc" 1136849721 2971 def0b6c1f0b107b3b936def894055589 ""
   "/usr/local/texlive/2026/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc" 1136849721 2900 1537cc8184ad1792082cd229ecc269f4 ""
   "/usr/local/texlive/2026/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
@@ -279,10 +278,10 @@
   "/usr/local/texlive/2026/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1774534410 5573038 b99aad5e4898a9034e953632f940512b ""
   "/usr/local/texlive/2026/texmf-var/web2c/pdftex/pdflatex.fmt" 1774534404 3636776 46ec8ba1c7a990d9956f52bd8df1a018 ""
   "/usr/local/texlive/2026/texmf.cnf" 1774209515 577 648cd9f92f9c0eac486f4c71c85cfbbe ""
-  "presentacion.aux" 1780667213.64924 5239 c70f6a7f65f0c77ccad67cabe925b734 "pdflatex"
-  "presentacion.nav" 1780667213.65062 3223 23b7a05c5a1d2ce94d8784364f94e577 "pdflatex"
-  "presentacion.out" 1780667213.65044 418 d0b690ba7bc2adcf6c7a298c0efb63e6 "pdflatex"
-  "presentacion.tex" 1780667212.0104 11523 c5eba25cd6c745355bdc97b5089a974e ""
+  "presentacion.aux" 1780669207.86441 5228 f72797d806928956c77cb0a61d220edf "pdflatex"
+  "presentacion.nav" 1780669207.87025 3223 23b7a05c5a1d2ce94d8784364f94e577 "pdflatex"
+  "presentacion.out" 1780669207.86945 418 d0b690ba7bc2adcf6c7a298c0efb63e6 "pdflatex"
+  "presentacion.tex" 1780669199.9933 10604 1d6a85f8df041de4525a8cf10f88ca9f ""
   (generated)
   "presentacion.aux"
   "presentacion.log"

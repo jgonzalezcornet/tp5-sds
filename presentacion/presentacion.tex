@@ -66,31 +66,12 @@
 \section{Introducci\'on}
 
 \begin{frame}{Sistema real}
-  \begin{columns}[T,onlytextwidth]
-    \column{0.53\textwidth}
     \small
     \begin{itemize}
       \item Red de neuronas simplificadas con actividad oscilatoria.
       \item Cada neurona se modela por una fase $\theta_i(t)$ y una frecuencia natural $\omega_i$.
       \item El acoplamiento entre neuronas puede inducir sincronizaci\'on colectiva.
     \end{itemize}
-
-    \column{0.43\textwidth}
-    \centering
-    \begin{tikzpicture}[scale=0.95]
-      \draw[thick] (0,0) circle (1.35);
-      \fill[red!75]    ( 75:1.35) circle (0.09);
-      \fill[orange!80] ( 25:1.35) circle (0.09);
-      \fill[yellow!80!orange] (-10:1.35) circle (0.09);
-      \fill[green!65!black] (-65:1.35) circle (0.09);
-      \fill[blue!70]   (-135:1.35) circle (0.09);
-      \fill[violet!75] (155:1.35) circle (0.09);
-
-      \draw[->, very thick, black] (0,0) -- (0.55,0.72);
-      \node[above right] at (0.55,0.72) {$r(t)$};
-      \node at (0,-1.75) {\small fases sobre el c\'irculo unitario};
-    \end{tikzpicture}
-  \end{columns}
 \end{frame}
 
 \begin{frame}{Modelo matem\'atico}
@@ -132,7 +113,7 @@
     box/.style={draw, rounded corners, align=center, minimum width=2.35cm, minimum height=0.78cm, fill=blue!8},
     main/.style={draw, rounded corners, align=center, minimum width=3.0cm, minimum height=0.90cm, fill=orange!16}
   ]
-    \node[main] (sim) {\texttt{KuramotoSim}\\[-1pt]\scriptsize loop principal};
+    \node[main] (sim) {\texttt{KuramotoSim}\\[-1pt]\scriptsize bucle principal};
     \node[box, above left=of sim] (cfg) {\texttt{Config}};
     \node[box, above right=of sim] (net) {\texttt{Network}};
     \node[box, below left=of sim] (out) {\texttt{Output}};
@@ -153,17 +134,12 @@
 \begin{frame}{Algoritmo implementado}
   \begin{algorithm}[H]
     \small
-    \caption{Loop principal del motor de Kuramoto}
+    \caption{Bucle principal del motor}
     \begin{algorithmic}[1]
-      \State Leer configuraci\'on y semillas.
-      \State Muestrear $\omega_i$ y $\theta_i(0)$.
-      \State Construir vecinos seg\'un la topolog\'ia elegida.
-      \State Inicializar integrador RK4.
-      \For{$step = 0, \dots, steps$}
-        \If{$step \bmod dumpEvery = 0$}
-          \State Escribir $t$, $r(t)$ y, si corresponde, las fases.
-        \EndIf
+      \State Muestrear $\omega_i$ y $\theta_i(0)$; construir la red.
+      \For{cada paso de tiempo}
         \State Avanzar $\theta$ con un paso RK4.
+        \State Registrar $t$ y $r(t)$ peri\'odicamente.
       \EndFor
     \end{algorithmic}
   \end{algorithm}
