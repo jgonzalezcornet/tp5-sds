@@ -95,7 +95,7 @@
 
 \begin{frame}{Modelo matem\'atico}
   \small
-  \textbf{Ecuaci\'on de evoluci\'on}
+  \textbf{Dinámica temporal de la i-ésima neurona:}
   \begin{equation*}
     \frac{d\theta_i}{dt} = \omega_i + K \sum_j A_{ij} \sin(\theta_j - \theta_i)
   \end{equation*}
@@ -110,16 +110,15 @@
 
     \column{0.48\textwidth}
     \begin{itemize}
-      \item $A_{ij}$: matriz de conectividad.
-      \item $N$: cantidad de osciladores.
+      \item $A_{ij}$: matriz de conectividad de la red.
     \end{itemize}
   \end{columns}
 
-  \vspace{0.2cm}
+  \vspace{0.4cm}
   \textbf{Especificaci\'on del modelo}
   \begin{itemize}
     \item $\omega_i \sim \mathcal{N}(1, 0.1^2)$
-    \item $\theta_i(0) \sim \mathcal{U}[0, 2\pi)$
+    \item $\theta_i \sim \mathcal{U}[0, 2\pi)$
     % \item La topolog\'ia queda codificada en $A_{ij}$.
   \end{itemize}
 \end{frame}
@@ -168,9 +167,6 @@
       \EndFor
     \end{algorithmic}
   \end{algorithm}
-
-  \vspace{0.05cm}
-  {\footnotesize El acoplamiento se evalúa precomputando $\sin(\theta_j)$ y $\cos(\theta_j)$ una sola vez por paso; $r(t)$ se calcula únicamente en cada dump.}
 \end{frame}
 
 \section{Simulaciones}
@@ -283,13 +279,16 @@
   \begin{equation*}
     r_{\infty} = \frac{1}{t_f - t_{\mathrm{est}}} \int_{t_{\mathrm{est}}}^{t_f} r(t)\,dt
   \end{equation*}
+  {\footnotesize donde $t_{\mathrm{est}}$ es el 80\% de $t_f$}
+  
+  \vspace{0.4cm}
 
   \textbf{Tiempo de sincronizaci\'on}
   \begin{equation*}
-    \tau_s = \min \left\{ t : \tilde{r}(t) \ge 0.95\, r_{\infty} \right\}
+    \tau = \min \left\{ t : r(t) \ge 0.95\, r_{\infty} \right\}
   \end{equation*}
 
-  {\footnotesize $\tilde{r}$: $r(t)$ suavizada con media m\'ovil; $\tau_s$ es el primer instante en que alcanza el $95\%$ de $r_{\infty}$.}
+  {\footnotesize $\tau$ es el primer instante en que alcanza el $95\%$ de $r_{\infty}$.}
 \end{frame}
 
 \section{Resultados}
@@ -311,7 +310,7 @@
   \includegraphics[height=0.80\textheight]{complete/rK.png}
 \end{frame}
 
-\begin{frame}{Red completa --- tiempo de sincronizaci\'on $\tau_s(K)$}
+\begin{frame}{Red completa --- tiempo de sincronizaci\'on $\tau(K)$}
   \centering
   \includegraphics[height=0.80\textheight]{complete/tauK.png}
 \end{frame}
@@ -328,7 +327,7 @@
   \includegraphics[height=0.80\textheight]{random/heatmap_rpK.png}
 \end{frame}
 
-\begin{frame}{Red aleatoria --- mapa $\tau_s(p,K)$}
+\begin{frame}{Red aleatoria --- mapa $\tau(p,K)$}
   \centering
   \includegraphics[height=0.80\textheight]{random/heatmap_taupK.png}
 \end{frame}
@@ -351,7 +350,7 @@
   \includegraphics[height=0.80\textheight]{ring/heatmap_rvK.png}
 \end{frame}
 
-\begin{frame}{Red anillo --- mapa $\tau_s(v,K)$}
+\begin{frame}{Red anillo --- mapa $\tau(v,K)$}
   \centering
   \includegraphics[height=0.80\textheight]{ring/heatmap_tauvK.png}
 \end{frame}
