@@ -13,7 +13,14 @@
 \usetikzlibrary{positioning}
 
 \usetheme[compress]{Berlin}
-\setbeamertemplate{headline}{}
+% Barra de navegacion compacta arriba: puntitos agrupados por seccion,
+% resaltando la posicion actual.
+\setbeamertemplate{mini frames}[default]
+\setbeamertemplate{headline}{%
+  \begin{beamercolorbox}[ht=2.5ex,dp=2.6ex]{section in head/foot}%
+    \hfill\insertnavigation{0.9\paperwidth}\hfill\hbox{}%
+  \end{beamercolorbox}%
+}
 \setbeamertemplate{page number in head/foot}[framenumber]
 \setbeamertemplate{navigation symbols}{}
 \setbeamersize{text margin left=5pt, text margin right=5pt}
@@ -22,7 +29,7 @@
 \newcommand{\vct}[1]{\mathbf{#1}}
 
 % Para cambiar a imagenes reales: reemplazar \figph{...} por
-% \includegraphics[height=0.80\textheight]{archivo}.
+% \includegraphics[width=\textwidth,height=0.87\textheight,keepaspectratio]{archivo}.
 \graphicspath{{../tp5-visual/graphs/}}
 \newcommand{\figph}[2][0.80]{%
   \centering
@@ -299,91 +306,85 @@
 % ===================== Red totalmente conectada =====================
 \begin{frame}{Red completa --- animaci\'on}
   \centering
-  \includegraphics[height=0.72\textheight]{frame_complete_K0.5.png}
+  \includegraphics[width=\textwidth,height=0.78\textheight,keepaspectratio]{frame_complete_K0.5.png}
   \casefoot{$K = 0.5$ \quad \href{run:../tp5-visual/animations/ring_anim_complete_K0.5.gif}{[ver animaci\'on]}}
 \end{frame}
 
 \begin{frame}{Red completa --- evoluci\'on temporal $r(t)$}
   \centering
-  \includegraphics[height=0.80\textheight]{complete/rt.png}
+  \includegraphics[width=\textwidth,height=0.87\textheight,keepaspectratio]{complete/rt.png}
 \end{frame}
 
 \begin{frame}{Red completa --- par\'ametro de orden estacionario $r_\infty(K)$}
   \centering
-  \includegraphics[height=0.80\textheight]{complete/rK.png}
+  \includegraphics[width=\textwidth,height=0.87\textheight,keepaspectratio]{complete/rK.png}
 \end{frame}
 
 \begin{frame}{Red completa --- tiempo de sincronizaci\'on $\tau(K)$}
   \centering
-  \includegraphics[height=0.80\textheight]{complete/tauK.png}
+  \includegraphics[width=\textwidth,height=0.87\textheight,keepaspectratio]{complete/tauK.png}
 \end{frame}
 
 % ===================== Red aleatoria =====================
 \begin{frame}{Red aleatoria --- animaci\'on}
   \centering
-  \includegraphics[height=0.72\textheight]{frame_random_p0.005_K0.5_subgraphs.png}
+  \includegraphics[width=\textwidth,height=0.78\textheight,keepaspectratio]{frame_random_p0.005_K0.5_subgraphs.png}
   \casefoot{$p = 0.005$ \quad $K = 0.5$ \quad \href{run:../tp5-visual/animations/ring_anim_random_p0.005_K0.5_subgraphs.gif}{[ver animaci\'on]}}
 \end{frame}
 
 \begin{frame}{Red aleatoria --- mapa $r_\infty(p,K)$}
   \centering
-  \includegraphics[height=0.80\textheight]{random/heatmap_rpK.png}
+  \includegraphics[width=\textwidth,height=0.87\textheight,keepaspectratio]{random/heatmap_rpK.png}
 \end{frame}
 
 \begin{frame}{Red aleatoria --- mapa $\tau(p,K)$}
   \centering
-  \includegraphics[height=0.80\textheight]{random/heatmap_taupK.png}
+  \includegraphics[width=\textwidth,height=0.87\textheight,keepaspectratio]{random/heatmap_taupK.png}
 \end{frame}
 
 \begin{frame}{Red aleatoria --- $r_\infty(p)$}
   \centering
-  \includegraphics[height=0.72\textheight]{random/rp_Kcut.png}
+  \includegraphics[width=\textwidth,height=0.78\textheight,keepaspectratio]{random/rp_Kcut.png}
   \casefoot{$K = 0.1$}
 \end{frame}
 
 % ===================== Red anillo =====================
 \begin{frame}{Red anillo --- animaci\'on}
   \centering
-  \includegraphics[height=0.72\textheight]{frame_ring_v5_K1.png}
+  \includegraphics[width=\textwidth,height=0.78\textheight,keepaspectratio]{frame_ring_v5_K1.png}
   \casefoot{$v = 5$ \quad $K = 1$ \quad \href{run:../tp5-visual/animations/ring_anim_ring_v5_K1.gif}{[ver animaci\'on]}}
 \end{frame}
 
 \begin{frame}{Red anillo --- mapa $r_\infty(v,K)$}
   \centering
-  \includegraphics[height=0.80\textheight]{ring/heatmap_rvK.png}
+  \includegraphics[width=\textwidth,height=0.87\textheight,keepaspectratio]{ring/heatmap_rvK.png}
 \end{frame}
 
 \begin{frame}{Red anillo --- mapa $\tau(v,K)$}
   \centering
-  \includegraphics[height=0.80\textheight]{ring/heatmap_tauvK.png}
+  \includegraphics[width=\textwidth,height=0.87\textheight,keepaspectratio]{ring/heatmap_tauvK.png}
 \end{frame}
 
 \begin{frame}{Red anillo --- $r_\infty(v)$}
   \centering
-  \includegraphics[height=0.72\textheight]{ring/rv_Kcut.png}
+  \includegraphics[width=\textwidth,height=0.78\textheight,keepaspectratio]{ring/rv_Kcut.png}
   \casefoot{$K = 0.1$}
 \end{frame}
 
 % ===================== Comparativo =====================
 \begin{frame}{Tiempo de sincronizaci\'on: comparaci\'on entre topolog\'ias}
   \centering
-  \includegraphics[height=0.72\textheight]{tau_comparison_p0.1.png}
+  \includegraphics[width=\textwidth,height=0.78\textheight,keepaspectratio]{tau_comparison_p0.1.png}
   \casefoot{$p = 0.1$}
 \end{frame}
 
-% ===================== Conclusiones =====================
-\begin{frame}{Conclusiones}
-  \small
+% ===================== Cierre =====================
+\section{Conclusiones}
+\begin{frame}
   \begin{itemize}
-    \item Existe un acoplamiento cr\'itico $K_c$: por debajo, desorden; por encima, sincronizaci\'on. Red completa: $K_c \approx 3.7\times10^{-4}$.
-    \item $K_c$ crece al bajar la conectividad: las redes densas sincronizan con mucho menos $K$.
-    \item Red aleatoria: sin conectividad m\'inima ($p$ chico) no sincroniza, aunque $K$ sea grande.
-    \item Red anillo: la m\'as lenta y dif\'icil; a $K = 0.1$, $r_\infty$ crece con $v$ pero no satura.
-    \item $\tau$ diverge cerca de $K_c$ y var\'ia \'ordenes de magnitud entre topolog\'ias (completa ${\sim}1$ s, anillo ${\sim}10^{2}$--$10^{3}$ s).
+    \item bla
   \end{itemize}
 \end{frame}
-
-% ===================== Cierre =====================
 \begin{frame}
   \begin{beamercolorbox}[sep=8pt,center]{title}
     \usebeamerfont{title}Muchas gracias
