@@ -70,9 +70,9 @@
     \begin{columns}[c,onlytextwidth]
       \column{0.52\textwidth}
       \begin{itemize}
-        \item Red de neuronas simplificadas con actividad oscilatoria.
-        \item Cada neurona se modela por una fase $\theta_i(t)$ y una frecuencia natural $\omega_i$.
-        \item El acoplamiento entre neuronas puede inducir sincronizaci\'on colectiva.
+        \item Neuronas simplificadas interactuantes.
+        \item Cada neurona se representa con un oscilador de fase.
+        \item Red de conexiones.
       \end{itemize}
 
       \column{0.44\textwidth}
@@ -115,12 +115,12 @@
     \begin{itemize}
       \item $\theta_i$: fase de la neurona $i$.
       \item $\omega_i$: frecuencia natural de la neurona $i$.
-      \item $K$: intensidad de acoplamiento global.
     \end{itemize}
 
     \column{0.48\textwidth}
     \begin{itemize}
       \item $A_{ij}$: matriz de conectividad de la red.
+      \item $K$: intensidad de acoplamiento global.
     \end{itemize}
   \end{columns}
 
@@ -236,9 +236,8 @@
     {\scriptsize barrido en $v$ y $K$}
   \end{minipage}
 
-  \vspace{0.18cm}
-  \small
-  Cada modalidad cambia solo la conectividad $A_{ij}$ y mantiene la misma din\'amica de fase.
+  \vspace{0.40cm}
+  Varía la conectividad $A_{ij}$.
 \end{frame}
 
 \begin{frame}{Par\'ametros del estudio}
@@ -268,7 +267,7 @@
   \textbf{Protocolo}
   \begin{itemize}
     \item 12 seeds por simulación
-    \item $t_{\mathrm{sim}}$: 50 s (completa, aleatoria), 1500 s (anillo)
+    \item $t_{\mathrm{sim}}$: 50 s (completa), 1500 s (aleatoria, anillo)
   \end{itemize}
 \end{frame}
 
@@ -281,9 +280,9 @@
 
   \textbf{Tiempo de sincronizaci\'on (llegada al estacionario)}
   \begin{equation*}
-    \tau = \min \left\{ t : |r(s) - r_{\infty}| \le 0.02 \;\; \forall\, s \ge t \right\}
+    \tau = \min\Big\{ t : \max_{s \ge t} r(s) - \min_{s \ge t} r(s) \le 0.04 \Big\}
   \end{equation*}
-  {\footnotesize $\tau$: primer instante tras el cual $r(t)$ se mantiene dentro de $\pm 0.02$ de $r_{\infty}$.}
+  {\footnotesize $\tau$: primer instante tras el cual $r(t)$ deja de variar (se mantiene en una banda de $\pm 0.02$).}
 
   \vspace{0.4cm}
 
@@ -291,7 +290,8 @@
   \begin{equation*}
     r_{\infty} = \frac{1}{M} \sum_{t_k \ge \tau} r(t_k)
   \end{equation*}
-  {\footnotesize $M$: cantidad de muestras con $t_k \ge \tau$.}
+  {\footnotesize promedio de $r$ sobre la ventana ya estable; $M$ = n\'umero de muestras con $t_k \ge \tau$.}
+  
 \end{frame}
 
 \section{Resultados}
@@ -369,6 +369,18 @@
   \centering
   \includegraphics[height=0.72\textheight]{tau_comparison_p0.1.png}
   \casefoot{$p = 0.1$}
+\end{frame}
+
+% ===================== Conclusiones =====================
+\begin{frame}{Conclusiones}
+  \small
+  \begin{itemize}
+    \item Existe un acoplamiento cr\'itico $K_c$: por debajo, desorden; por encima, sincronizaci\'on. Red completa: $K_c \approx 3.7\times10^{-4}$.
+    \item $K_c$ crece al bajar la conectividad: las redes densas sincronizan con mucho menos $K$.
+    \item Red aleatoria: sin conectividad m\'inima ($p$ chico) no sincroniza, aunque $K$ sea grande.
+    \item Red anillo: la m\'as lenta y dif\'icil; a $K = 0.1$, $r_\infty$ crece con $v$ pero no satura.
+    \item $\tau$ diverge cerca de $K_c$ y var\'ia \'ordenes de magnitud entre topolog\'ias (completa ${\sim}1$ s, anillo ${\sim}10^{2}$--$10^{3}$ s).
+  \end{itemize}
 \end{frame}
 
 % ===================== Cierre =====================

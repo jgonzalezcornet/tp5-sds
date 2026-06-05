@@ -90,8 +90,13 @@ def plot_rK(by_K):
     if Kc is not None:
         ax.axhline(R_C, color="0.6", linestyle=":", linewidth=1, zorder=2)
         ax.axvline(Kc, color="C3", linestyle="--", linewidth=1.5, zorder=3)
+        # Punto sobre la curva, en el cruce r = 0.5
+        ax.plot([Kc], [R_C], "o", color="C3", markersize=12,
+                markeredgecolor="black", markeredgewidth=0.8, zorder=5)
+        m_str, e_str = f"{Kc:.1e}".split("e")
+        kc_label = rf"$K_c = {m_str}\times 10^{{{int(e_str)}}}$"
         ax.text(
-            Kc, 0.04, f"  $K_c = {Kc:.2g}$",
+            Kc, 0.04, "  " + kc_label,
             fontsize=18, color="C3",
             ha="left", va="bottom",
             bbox=dict(boxstyle="round,pad=0.3", facecolor="white",
