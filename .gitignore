@@ -506,3 +506,15 @@ FodyWeavers.xsd
 /tp5-visual/graphs/
 /tp5-visual/animations/
 *.gif
+
+### Presentacion — artefactos de LaTeX (regenerables; solo se trackean .tex y .pdf) ###
+presentacion/*.aux
+presentacion/*.fls
+presentacion/*.fdb_latexmk
+presentacion/*.synctex*
+presentacion/*.nav
+presentacion/*.snm
+presentacion/*.toc
+presentacion/*.out
+# Duplicados basura tipo "presentacion 2.pdf", "presentacion 3.fls"
+presentacion/presentacion [0-9]*
