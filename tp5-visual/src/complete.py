@@ -101,7 +101,7 @@ def plot_rK(by_K):
 
     ax.set_xscale("log")
     ax.set_xlabel("K")
-    ax.set_ylabel("r")
+    ax.set_ylabel(r"$r_\infty$")
     ax.set_ylim(0, 1.05)
     out = OUT_DIR / "rK.png"
     fig.savefig(out)

@@ -48,7 +48,7 @@ def plot_rp_Kcut(by_pK):
     ax.errorbar(ps, r_mean, yerr=r_std, fmt="o-", color="C0", capsize=5)
     ax.set_xscale("log")
     ax.set_xlabel("p")
-    ax.set_ylabel("r")
+    ax.set_ylabel(r"$r_\infty$")
     ax.set_ylim(0, 1.05)
     out = OUT_DIR / "rp_Kcut.png"
     fig.savefig(out)
@@ -95,7 +95,7 @@ def plot_heatmaps(by_pK):
             r_grid[i, j] = np.mean(r_vals)
             if len(tau_vals) >= 3:
                 tau_grid[i, j] = np.mean(tau_vals)
-    out_r = heatmap(r_grid, ps, Ks, "r", "heatmap_rpK.png")
+    out_r = heatmap(r_grid, ps, Ks, r"$r_\infty$", "heatmap_rpK.png")
     out_tau = heatmap(tau_grid, ps, Ks, "τ (s)",
                       "heatmap_taupK.png", cmap="plasma")
     return out_r, out_tau

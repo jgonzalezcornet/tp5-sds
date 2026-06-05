@@ -40,7 +40,7 @@ def plot_rv_Kcut(by_vK):
     fig, ax = plt.subplots()
     ax.errorbar(vs, r_mean, yerr=r_std, fmt="o-", color="C0", capsize=5)
     ax.set_xlabel("v")
-    ax.set_ylabel("r")
+    ax.set_ylabel(r"$r_\infty$")
     ax.set_ylim(0, 1.05)
     out = OUT_DIR / "rv_Kcut.png"
     fig.savefig(out)
@@ -86,7 +86,7 @@ def plot_heatmaps(by_vK):
             r_grid[i, j] = np.mean(r_vals)
             if len(tau_vals) >= 3:
                 tau_grid[i, j] = np.mean(tau_vals)
-    out_r = heatmap(r_grid, vs, Ks, "r", "heatmap_rvK.png")
+    out_r = heatmap(r_grid, vs, Ks, r"$r_\infty$", "heatmap_rvK.png")
     out_tau = heatmap(tau_grid, vs, Ks, "τ (s)",
                       "heatmap_tauvK.png", cmap="plasma")
     return out_r, out_tau
