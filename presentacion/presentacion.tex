@@ -67,11 +67,40 @@
 
 \begin{frame}{Sistema real}
     \small
-    \begin{itemize}
-      \item Red de neuronas simplificadas con actividad oscilatoria.
-      \item Cada neurona se modela por una fase $\theta_i(t)$ y una frecuencia natural $\omega_i$.
-      \item El acoplamiento entre neuronas puede inducir sincronizaci\'on colectiva.
-    \end{itemize}
+    \begin{columns}[c,onlytextwidth]
+      \column{0.52\textwidth}
+      \begin{itemize}
+        \item Red de neuronas simplificadas con actividad oscilatoria.
+        \item Cada neurona se modela por una fase $\theta_i(t)$ y una frecuencia natural $\omega_i$.
+        \item El acoplamiento entre neuronas puede inducir sincronizaci\'on colectiva.
+      \end{itemize}
+
+      \column{0.44\textwidth}
+      \centering
+      \begin{tikzpicture}[scale=1.0]
+        \foreach \name/\ang in {a/90,b/54,c/18,d/-18,e/-54,f/-90,g/-126,h/-162,i/162,j/126} {
+          \coordinate (\name) at (\ang:1.45);
+        }
+
+        \foreach \u/\v in {a/b,b/c,c/d,d/e,e/f,f/g,g/h,h/i,i/j,j/a,
+                              a/e,b/f,c/h,d/g,i/j} {
+          \draw[gray!55, thick] (\u) -- (\v);
+        }
+
+        \foreach \n in {a,e,i,j} {
+          \filldraw[fill=blue!65, draw=black] (\n) circle (0.11);
+        }
+        \foreach \n in {b,f} {
+          \filldraw[fill=orange!85, draw=black] (\n) circle (0.11);
+        }
+        \foreach \n in {c,h} {
+          \filldraw[fill=orange!85, draw=black] (\n) circle (0.11);
+        }
+        \foreach \n in {d,g} {
+          \filldraw[fill=green!60!black, draw=black] (\n) circle (0.11);
+        }
+      \end{tikzpicture}
+    \end{columns}
 \end{frame}
 
 \begin{frame}{Modelo matem\'atico}
@@ -109,20 +138,18 @@
 \begin{frame}{Arquitectura del motor}
   \centering
   \begin{tikzpicture}[
-    node distance=0.85cm and 1.0cm,
+    node distance=0.95cm and 1.6cm,
     box/.style={draw, rounded corners, align=center, minimum width=2.35cm, minimum height=0.78cm, fill=blue!8},
     main/.style={draw, rounded corners, align=center, minimum width=3.0cm, minimum height=0.90cm, fill=orange!16}
   ]
     \node[main] (sim) {\texttt{KuramotoSim}\\[-1pt]\scriptsize bucle principal};
     \node[box, above left=of sim] (cfg) {\texttt{Config}};
     \node[box, above right=of sim] (net) {\texttt{Network}};
-    \node[box, below left=of sim] (out) {\texttt{Output}};
-    \node[box, below right=of sim] (int) {\texttt{Integrator}};
+    \node[box, below=of sim] (int) {\texttt{Integrator}};
     \node[box, below=of int] (dyn) {\texttt{Dynamics}};
 
     \draw[->, thick] (cfg) -- (sim);
     \draw[->, thick] (net) -- (sim);
-    \draw[->, thick] (sim) -- (out);
     \draw[->, thick] (sim) -- (int);
     \draw[->, thick] (dyn) -- (int);
   \end{tikzpicture}
@@ -136,10 +163,11 @@
     \small
     \caption{Bucle principal del motor}
     \begin{algorithmic}[1]
-      \State Muestrear $\omega_i$ y $\theta_i(0)$; construir la red.
+      \State Muestrear condiciones iniciales y construir la red.
+      \State Discretizar el tiempo de simulaci\'on.
       \For{cada paso de tiempo}
-        \State Avanzar $\theta$ con un paso RK4.
-        \State Registrar $t$ y $r(t)$ peri\'odicamente.
+        \State Evaluar la din\'amica del sistema.
+        \State Integrar la evoluci\'on de las fases con RK4.
       \EndFor
     \end{algorithmic}
   \end{algorithm}
