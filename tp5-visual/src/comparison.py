@@ -6,21 +6,20 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import style  # noqa: F401
-from lib import OUT_ROOT, load_rt, tau_sync
+from lib import OUT_ROOT, load_rt, r_stationary, tau_sync
 
 OUT_DIR = Path(__file__).resolve().parent.parent / "graphs"
 
 
-def collect_tau(files_by_K, late_frac=0.2):
+def collect_tau(files_by_K):
     Ks = sorted(files_by_K.keys())
     Ks_plot, tau_mean, tau_std = [], [], []
     for K in Ks:
         taus = []
         for f in files_by_K[K]:
             t, r = load_rt(f)
-            tau = tau_sync(t, r, frac=0.95, late_frac=late_frac, smooth_pts=20)
-            r_late = float(np.mean(r[int(len(r) * (1 - late_frac)):]))
-            if tau is not None and r_late > 0.5:
+            tau = tau_sync(t, r)
+            if tau is not None and r_stationary(r) > 0.5:
                 taus.append(tau)
         if len(taus) >= 3:
             Ks_plot.append(K)

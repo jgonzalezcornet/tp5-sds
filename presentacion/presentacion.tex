@@ -279,20 +279,18 @@
     r(t) = \left| \frac{1}{N} \sum_j [\cos(\theta_j), \sin(\theta_j)] \right|
   \end{equation*}
 
-  \textbf{Valor estacionario}
+  \textbf{Tiempo de sincronizaci\'on (llegada al estacionario)}
   \begin{equation*}
-    r_{\infty} = \frac{1}{t_f - t_{\mathrm{est}}} \int_{t_{\mathrm{est}}}^{t_f} r(t)\,dt
+    \tau = \min \left\{ t : |r(s) - r_{\infty}| \le 0.02 \;\; \forall\, s \ge t \right\}
   \end{equation*}
-  {\footnotesize donde $t_{\mathrm{est}}$ es el 80\% de $t_f$}
-  
+  {\footnotesize $\tau$: primer instante tras el cual $r(t)$ se mantiene dentro de $\pm 0.02$ de $r_{\infty}$.}
+
   \vspace{0.4cm}
 
-  \textbf{Tiempo de sincronizaci\'on}
+  \textbf{Valor estacionario}
   \begin{equation*}
-    \tau = \min \left\{ t : r(t) \ge 0.95\, r_{\infty} \right\}
+    r_{\infty} = \frac{1}{t_f - \tau} \int_{\tau}^{t_f} r(t)\,dt
   \end{equation*}
-
-  {\footnotesize $\tau$ es el primer instante en que alcanza el $95\%$ de $r_{\infty}$.}
 \end{frame}
 
 \section{Resultados}

@@ -14,8 +14,8 @@ Estos valores son idénticos en los tres barridos (ver `run_complete.py`, `run_r
 - Frecuencias naturales gaussianas con `μ_ω = 1.0`, `σ_ω = 0.1`.
 - `dt = 0.001` (paso de integración RK4).
 - 12 realizaciones (`seed = 1000..1011`) por punto del barrido; las curvas son promedios y las barras de error son la desviación estándar entre realizaciones.
-- `r_estacionario`: promedio de `r(t)` en el último 20 % de la corrida.
-- `τ`: primer tiempo en que `r(t)` suavizado alcanza `0.95 · r_estacionario`. Sólo se promedia sobre realizaciones que sincronizan (`r_late > 0.5`) y al menos 3 de las 12.
+- `τ` (tiempo de sincronización = llegada al estado estacionario): tiempo de establecimiento (settling time), primer instante tras el cual `r(t)` (suavizada) se mantiene dentro de ±0.02 de su valor de régimen. La ventana se adapta al transitorio de cada corrida en vez de usar un corte fijo. Sólo se promedia sobre realizaciones que sincronizan (`r_estacionario > 0.5`) y al menos 3 de las 12.
+- `r_estacionario`: promedio de `r(t)` sobre la ventana `[τ, t_f]` (es decir, desde el mismo `τ`).
 
 ## Acoplamiento crítico K_c
 

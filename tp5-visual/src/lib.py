@@ -41,29 +41,37 @@ def parse_header(path):
     return out
 
 
-def r_stationary(r, late_frac=0.5):
-    """Mean of r over the last `late_frac` of the trace."""
+def stationary_start(r, delta=0.02, smooth_frac=0.02, tail_frac=0.1, min_win=0.05):
+    """Settling time (as an index): primer indice a partir del cual r(t) se queda
+    dentro de una banda +-delta de su valor de regimen. `delta=0.02` es la banda
+    del 2% (convencion estandar de settling time); r esta acotado en [0,1]. La
+    ventana se adapta al transitorio real en vez de usar un corte fijo.
+    `min_win` garantiza una ventana minima para casos que no llegan a regimen."""
     n = len(r)
-    return float(np.mean(r[int(n * (1 - late_frac)):]))
+    if n == 0:
+        return 0
+    w = max(1, int(n * smooth_frac))
+    r_smooth = pd.Series(r).rolling(w, center=True, min_periods=1).mean().to_numpy()
+    r_ss = float(r_smooth[int(n * (1 - tail_frac)):].mean())
+    outside = np.where(np.abs(r_smooth - r_ss) > delta)[0]
+    i = 0 if len(outside) == 0 else int(outside[-1]) + 1
+    return min(i, int(n * (1 - min_win)))
 
 
-def tau_sync(t, r, frac=0.95, late_frac=0.25, smooth_pts=20):
-    """Time at which r(t) (smoothed) first reaches `frac` * r_late."""
+def r_stationary(r, **kw):
+    """Valor estacionario de r: promedio temporal sobre la ventana establecida
+    [t_est, t_f] (ver `stationary_start`)."""
+    return float(np.mean(r[stationary_start(r, **kw):]))
+
+
+def tau_sync(t, r):
+    """Tiempo de sincronizacion (= llegada al estado estacionario): el settling
+    time, el mismo instante que define el inicio de la ventana de r_inf. Es decir,
+    tau y t_est son la misma magnitud (ver `stationary_start`)."""
     n = len(t)
     if n == 0:
         return None
-    r_late = float(np.mean(r[int(n * (1 - late_frac)):]))
-    target = frac * r_late
-    w = min(smooth_pts, max(1, n // 20))
-    if w >= 2:
-        kernel = np.ones(w) / w
-        r_smooth = np.convolve(r, kernel, mode="same")
-    else:
-        r_smooth = r
-    for i in range(n):
-        if r_smooth[i] >= target:
-            return float(t[i])
-    return None
+    return float(t[stationary_start(r)])
 
 
 def run_one(N, K, topology, dt, tSim, seed, output,

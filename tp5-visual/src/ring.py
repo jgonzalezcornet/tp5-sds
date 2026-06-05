@@ -33,7 +33,7 @@ def plot_rv_Kcut(by_vK):
     r_mean = np.zeros(len(vs))
     r_std = np.zeros(len(vs))
     for i, v in enumerate(vs):
-        vals = [r_stationary(load_rt(f)[1], late_frac=0.2)
+        vals = [r_stationary(load_rt(f)[1])
                 for f in by_vK[(v, K_CUT)]]
         r_mean[i] = np.mean(vals)
         r_std[i] = np.std(vals)
@@ -78,10 +78,10 @@ def plot_heatmaps(by_vK):
             tau_vals = []
             for f in files:
                 t, r = load_rt(f)
-                r_vals.append(r_stationary(r, late_frac=0.2))
-                tau = tau_sync(t, r, frac=0.95, late_frac=0.2, smooth_pts=20)
-                r_late = float(np.mean(r[int(len(r) * 0.8):]))
-                if tau is not None and r_late > 0.5:
+                r_inf = r_stationary(r)
+                r_vals.append(r_inf)
+                tau = tau_sync(t, r)
+                if tau is not None and r_inf > 0.5:
                     tau_vals.append(tau)
             r_grid[i, j] = np.mean(r_vals)
             if len(tau_vals) >= 3:

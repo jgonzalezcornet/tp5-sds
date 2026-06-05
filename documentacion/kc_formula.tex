@@ -1,0 +1,51 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{siunitx}
+
+\title{Acoplamiento crítico $K_c$ --- Oscilador de Kuramoto}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+\vspace{-3em}
+
+\section*{Modelo}
+\[
+\frac{d\theta_i}{dt} = \omega_i + K\sum_j A_{ij}\,\sin(\theta_j-\theta_i),
+\qquad \omega_i\sim\mathcal{N}(\mu,\sigma^2).
+\]
+Parámetro de orden $r(t)=\bigl|\tfrac{1}{N}\sum_j e^{\,i\theta_j}\bigr|$, con valor
+estacionario $r_\infty$ ($r=0$: desorden; $r=1$: sincronización global).
+
+\section*{1. Criterio operativo}
+Se define $K_c$ como el menor acoplamiento para el cual el sistema queda más cerca
+de la sincronización ($r=1$) que del desorden ($r=0$), es decir $r_\infty \ge \tfrac{1}{2}$:
+\[
+\boxed{\;K_c = \min\bigl\{\,K : r_\infty(K) \ge \tfrac{1}{2}\,\bigr\}\;}
+\]
+El cruce se interpola en escala $\log K$ entre los dos puntos del barrido que lo
+encierran. Red completa: $K_c \approx \num{3.7e-4}$.
+
+\section*{2. Referencia teórica (campo medio)}
+La teoría de Kuramoto predice el \emph{inicio} de la sincronización en
+\[
+K_c^{\text{MF}} = \frac{2}{\pi\,g(0)},
+\]
+con $g$ la densidad de frecuencias naturales evaluada en su media. Para
+$\mathcal{N}(\mu,\sigma^2)$ se tiene $g(0)=\tfrac{1}{\sigma\sqrt{2\pi}}$, y como $K$
+multiplica la suma \emph{cruda} sobre vecinos (empuje efectivo $\sim K\langle k\rangle$,
+con $\langle k\rangle$ el grado medio):
+\[
+\boxed{\;K_c^{\text{MF}} = \frac{\sigma}{\langle k\rangle}\sqrt{\frac{8}{\pi}}\;}
+\]
+Red completa ($\langle k\rangle = N-1 = 599$, $\sigma=\num{0.1}$):
+$K_c^{\text{MF}} \approx \num{2.7e-4}$. Marca la \emph{emergencia} de la
+sincronización; el $K_c$ operativo ($r_\infty=\tfrac12$) cae algo por encima, ya
+dentro de la transición.
+
+\end{document}
