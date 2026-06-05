@@ -12,9 +12,14 @@ DATA_DIR = OUT_ROOT / "complete_Ksweep"
 FINE_DIR = OUT_ROOT / "complete_Ksweep_fine"
 OUT_DIR = Path(__file__).resolve().parent.parent / "graphs" / "complete"
 
-# Ventana de r_inf usada para ajustar K_c (region de escaleo: por encima del
-# piso incoherente ~1/sqrt(N) y por debajo de la saturacion).
-R_FIT_LO, R_FIT_HI = 0.15, 0.8
+# Umbral para K_c: minimo K con r_inf >= R_C. En r=0.5 el sistema queda mas
+# cerca de la sincronizacion (r=1) que del desorden (r=0).
+R_C = 0.5
+
+# Subconjunto de K mostrado en r(t): incoherente -> critico -> sincronizacion
+# cada vez mas rapida. Se omiten los K altos redundantes (todos suben a 1 al
+# instante y dan curvas casi identicas).
+RT_SHOW = {"0", "0.0003", "0.0005", "0.001", "0.003", "0.1"}
 
 
 def load_by_K(data_dir=DATA_DIR):
@@ -30,21 +35,20 @@ def load_by_K(data_dir=DATA_DIR):
 
 
 def plot_rt(by_K):
-    Ks = sorted(by_K.keys())
+    Ks = [K for K in sorted(by_K) if f"{K:g}" in RT_SHOW]
     fig, ax = plt.subplots()
     cmap = plt.colormaps["viridis"]
-    n_seeds = min(len(v) for v in by_K.values())
+    n_seeds = min(len(by_K[K]) for K in Ks)
     for i, K in enumerate(Ks):
         traces = [load_rt(f) for f in by_K[K]]
         t = traces[0][0]
-        rs = np.stack([r for _, r in traces])
-        r_mean = rs.mean(axis=0)
+        r_mean = np.stack([r for _, r in traces]).mean(axis=0)
         color = cmap(i / max(1, len(Ks) - 1))
         ax.plot(t, r_mean, color=color, label=f"K = {K:g}")
     ax.set_xlabel("t (s)")
     ax.set_ylabel("r")
     ax.set_ylim(0, 1.05)
-    ax.legend(loc="lower right", fontsize=14, ncol=2)
+    ax.legend(loc="center left", bbox_to_anchor=(1.01, 0.5), fontsize=16)
     out = OUT_DIR / "rt.png"
     fig.savefig(out)
     plt.close(fig)
@@ -59,7 +63,7 @@ def plot_rK(by_K):
         vals = []
         for f in by_K[K]:
             _, r = load_rt(f)
-            vals.append(r_stationary(r, late_frac=0.2))
+            vals.append(r_stationary(r))
         r_inf_mean[i] = np.mean(vals)
         r_inf_std[i] = np.std(vals)
     fig, ax = plt.subplots()
@@ -68,28 +72,28 @@ def plot_rK(by_K):
     ax.errorbar(Ks_arr[pos], r_inf_mean[pos], yerr=r_inf_std[pos],
                 fmt="o-", color="C0", capsize=5)
 
-    # --- K_c por escaleo del parametro de orden ---
-    # Cerca del umbral r_inf ~ sqrt((K - K_c)/K_c), es decir r_inf^2 es lineal
-    # en K. Se ajusta una recta a r_inf^2 vs K en la region de subida y K_c es
-    # su raiz (donde r^2 -> 0): el acoplamiento en que emerge la sincronizacion.
+    # --- K_c: minimo K con r_inf >= 0.5 (el sistema queda mas cerca de la
+    # sincronizacion que del desorden). Se interpola el cruce en escala log-K. ---
     Ks_pos = Ks_arr[pos]
     r_pos = r_inf_mean[pos]
-    band = (r_pos >= R_FIT_LO) & (r_pos <= R_FIT_HI)
     Kc = None
-    if band.sum() >= 2:
-        Kfit = Ks_pos[band]
-        slope, intercept = np.polyfit(Kfit, r_pos[band] ** 2, 1)
-        Kc = -intercept / slope
-        Kline = np.linspace(Kc, Kfit.max(), 100)
-        ax.plot(Kline, np.sqrt(np.clip(slope * (Kline - Kc), 0, None)),
-                color="C3", linestyle=":", linewidth=1.5, zorder=3)
+    for j in range(len(r_pos)):
+        if r_pos[j] >= R_C:
+            if j == 0:
+                Kc = Ks_pos[0]
+            else:
+                logK0, logK1 = np.log10(Ks_pos[j - 1]), np.log10(Ks_pos[j])
+                frac = (R_C - r_pos[j - 1]) / (r_pos[j] - r_pos[j - 1])
+                Kc = 10 ** (logK0 + frac * (logK1 - logK0))
+            break
 
     if Kc is not None:
+        ax.axhline(R_C, color="0.6", linestyle=":", linewidth=1, zorder=2)
         ax.axvline(Kc, color="C3", linestyle="--", linewidth=1.5, zorder=3)
         ax.text(
-            Kc, 0.5, f"  $K_c = {Kc:.2g}$",
-            fontsize=20, color="C3",
-            verticalalignment="center",
+            Kc, 0.04, f"  $K_c = {Kc:.2g}$",
+            fontsize=18, color="C3",
+            ha="left", va="bottom",
             bbox=dict(boxstyle="round,pad=0.3", facecolor="white",
                       edgecolor="C3", alpha=0.9),
             zorder=4,
@@ -114,9 +118,8 @@ def plot_tauK(by_K):
         taus = []
         for f in by_K[K]:
             t, r = load_rt(f)
-            tau = tau_sync(t, r, frac=0.95, late_frac=0.2, smooth_pts=20)
-            r_late = float(np.mean(r[int(len(r) * 0.8):]))
-            if tau is not None and r_late > 0.5:
+            tau = tau_sync(t, r)
+            if tau is not None and r_stationary(r) > 0.5:
                 taus.append(tau)
         if len(taus) >= 3:
             tau_mean.append(np.mean(taus))
