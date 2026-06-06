@@ -6,7 +6,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import style  # noqa: F401
-from lib import OUT_ROOT, load_rt, r_stationary, tau_sync
+from lib import (ORDER_THRESHOLD, OUT_ROOT, load_rt, min_sync_count,
+                 r_stationary, tau_sync)
 
 OUT_DIR = Path(__file__).resolve().parent.parent / "graphs"
 
@@ -19,9 +20,9 @@ def collect_tau(files_by_K):
         for f in files_by_K[K]:
             t, r = load_rt(f)
             tau = tau_sync(t, r)
-            if tau is not None and r_stationary(r) > 0.5:
+            if tau is not None and r_stationary(r) > ORDER_THRESHOLD:
                 taus.append(tau)
-        if len(taus) >= 3:
+        if len(taus) >= min_sync_count(len(files_by_K[K])):
             Ks_plot.append(K)
             tau_mean.append(np.mean(taus))
             tau_std.append(np.std(taus))

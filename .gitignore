@@ -518,3 +518,11 @@ presentacion/*.toc
 presentacion/*.out
 # Duplicados basura tipo "presentacion 2.pdf", "presentacion 3.fls"
 presentacion/presentacion [0-9]*
+
+### Documentacion — artefactos de LaTeX (regenerables; solo se trackean .tex y .pdf) ###
+documentacion/*.aux
+documentacion/*.fls
+documentacion/*.fdb_latexmk
+documentacion/*.synctex*
+documentacion/*.out
+documentacion/*.toc

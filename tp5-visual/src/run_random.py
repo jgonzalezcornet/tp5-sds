@@ -3,7 +3,7 @@ from lib import OUT_ROOT, ensure_compiled, run_batch
 
 N = 600
 DT = 0.001
-T_SIM = 50.0
+T_SIM = 100.0
 DUMP_EVERY = 10
 MU_OMEGA = 1.0
 SIGMA_OMEGA = 0.1

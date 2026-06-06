@@ -6,7 +6,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import style  # noqa: F401
-from lib import OUT_ROOT, cell_edges, load_rt, r_stationary, tau_sync
+from lib import (ORDER_THRESHOLD, OUT_ROOT, cell_edges, load_rt, min_sync_count,
+                 r_stationary, tau_sync)
 
 DATA_DIR = OUT_ROOT / "ring_vK"
 OUT_DIR = Path(__file__).resolve().parent.parent / "graphs" / "ring"
@@ -81,10 +82,10 @@ def plot_heatmaps(by_vK):
                 r_inf = r_stationary(r)
                 r_vals.append(r_inf)
                 tau = tau_sync(t, r)
-                if tau is not None and r_inf > 0.5:
+                if tau is not None and r_inf > ORDER_THRESHOLD:
                     tau_vals.append(tau)
             r_grid[i, j] = np.mean(r_vals)
-            if len(tau_vals) >= 3:
+            if len(tau_vals) >= min_sync_count(len(files)):
                 tau_grid[i, j] = np.mean(tau_vals)
     out_r = heatmap(r_grid, vs, Ks, r"$r_\infty$", "heatmap_rvK.png")
     out_tau = heatmap(tau_grid, vs, Ks, "τ (s)",
