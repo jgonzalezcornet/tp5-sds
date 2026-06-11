@@ -117,27 +117,24 @@
     \frac{d\theta_i}{dt} = \omega_i + K \sum_j A_{ij} \sin(\theta_j - \theta_i)
   \end{equation*}
 
+  \vspace{0.25cm}
+
   \begin{columns}[T,onlytextwidth]
-    \column{0.48\textwidth}
+    \column{0.52\textwidth}
     \begin{itemize}
       \item $\theta_i$: fase de la neurona $i$.
       \item $\omega_i$: frecuencia natural de la neurona $i$.
-    \end{itemize}
-
-    \column{0.48\textwidth}
-    \begin{itemize}
       \item $A_{ij}$: matriz de conectividad de la red.
       \item $K$: intensidad de acoplamiento global.
     \end{itemize}
-  \end{columns}
 
-  \vspace{0.4cm}
-  \textbf{Especificaci\'on del modelo}
-  \begin{itemize}
-    \item $\omega_i \sim \mathcal{N}(1, 0.1^2)$
-    \item $\theta_i \sim \mathcal{U}[0, 2\pi)$
-    % \item La topolog\'ia queda codificada en $A_{ij}$.
-  \end{itemize}
+    \column{0.44\textwidth}
+    \textbf{Especificaci\'on del modelo}
+    \begin{itemize}
+      \item $\omega_i \sim \mathcal{N}(1, 0.1^2)$
+      \item $\theta_i(0) \sim \mathcal{U}[0, 2\pi)$
+    \end{itemize}
+  \end{columns}
 \end{frame}
 
 \section{Implementaci\'on}
@@ -274,7 +271,7 @@
   \textbf{Protocolo}
   \begin{itemize}
     \item 12 seeds por simulación
-    \item $t_{\mathrm{sim}}$: 50 s (completa), 1500 s (aleatoria, anillo)
+    \item $t_{\mathrm{sim}}$: 50 s (completa, aleatoria), 1500 s (anillo)
   \end{itemize}
 \end{frame}
 
@@ -289,7 +286,7 @@
   \begin{equation*}
     \tau = \min\Big\{ t : \max_{s \ge t} r(s) - \min_{s \ge t} r(s) \le 0.04 \Big\}
   \end{equation*}
-  {\footnotesize $\tau$: primer instante tras el cual $r(t)$ deja de variar (se mantiene en una banda de $\pm 0.02$).}
+  {\footnotesize $\tau$: primer instante tras el cual $r(t)$ queda dentro de una banda de ancho $0.04$, es decir $\pm 0.02$.}
 
   \vspace{0.4cm}
 
