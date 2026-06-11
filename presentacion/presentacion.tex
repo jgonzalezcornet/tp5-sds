@@ -303,8 +303,13 @@
 % ===================== Red totalmente conectada =====================
 \begin{frame}{Red completa --- animaci\'on}
   \centering
-  \includegraphics[width=\textwidth,height=0.78\textheight,keepaspectratio]{frame_complete_K0.5.png}
-  \casefoot{$K = 0.5$ \quad \href{run:../tp5-visual/animations/ring_anim_complete_K0.5.gif}{[ver animaci\'on]}}
+  \begin{tikzpicture}
+    \node (img) {\includegraphics[width=0.9\textwidth,height=0.68\textheight,keepaspectratio]{frame_complete_K0.5.png}};
+    \node[fill=gray!25, fill opacity=0.8, text opacity=1,
+      rounded corners=4pt, draw=gray!70] at (img.center)
+      {\large \href{https://youtube.com/shorts/dTPbSaLTp7w?feature=share}{[ver animaci\'on]}};
+  \end{tikzpicture}
+  \casefoot{$K = 0.5$}
 \end{frame}
 
 \begin{frame}{Red completa --- evoluci\'on temporal $r(t)$}
@@ -325,8 +330,13 @@
 % ===================== Red aleatoria =====================
 \begin{frame}{Red aleatoria --- animaci\'on}
   \centering
-  \includegraphics[width=\textwidth,height=0.78\textheight,keepaspectratio]{frame_random_p0.005_K0.5_subgraphs.png}
-  \casefoot{$p = 0.005$ \quad $K = 0.5$ \quad \href{run:../tp5-visual/animations/ring_anim_random_p0.005_K0.5_subgraphs.gif}{[ver animaci\'on]}}
+  \begin{tikzpicture}
+    \node (img) {\includegraphics[width=0.9\textwidth,height=0.68\textheight,keepaspectratio]{frame_random_p0.005_K0.5_subgraphs.png}};
+    \node[fill=gray!25, fill opacity=0.8, text opacity=1,
+      rounded corners=4pt, draw=gray!70] at (img.center)
+      {\large \href{https://youtu.be/5ywpPpeXxnA}{[ver animaci\'on]}};
+  \end{tikzpicture}
+  \casefoot{$p = 0.005$ \quad $K = 0.5$}
 \end{frame}
 
 \begin{frame}{Red aleatoria --- cantidad de componentes vs. $p$}
@@ -353,8 +363,13 @@
 % ===================== Red anillo =====================
 \begin{frame}{Red anillo --- animaci\'on}
   \centering
-  \includegraphics[width=\textwidth,height=0.78\textheight,keepaspectratio]{frame_ring_v5_K1.png}
-  \casefoot{$v = 5$ \quad $K = 1$ \quad \href{run:../tp5-visual/animations/ring_anim_ring_v5_K1.gif}{[ver animaci\'on]}}
+  \begin{tikzpicture}
+    \node (img) {\includegraphics[width=0.9\textwidth,height=0.68\textheight,keepaspectratio]{frame_ring_v5_K1.png}};
+    \node[fill=gray!25, fill opacity=0.8, text opacity=1,
+      rounded corners=4pt, draw=gray!70] at (img.center)
+      {\large \href{https://youtube.com/shorts/QHr2l3LitTg}{[ver animaci\'on]}};
+  \end{tikzpicture}
+  \casefoot{$v = 5$ \quad $K = 1$}
 \end{frame}
 
 \begin{frame}{Red anillo --- mapa $r_\infty(v,K)$}
