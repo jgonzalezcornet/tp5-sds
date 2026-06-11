@@ -74,6 +74,20 @@ def tau_sync(t, r):
     return float(t[stationary_start(r)])
 
 
+MIN_SYNC_FRAC = 0.25  # fraccion de realizaciones que deben llegar a un estado
+                      # estacionario ordenado para colorear la celda (piso de 3).
+ORDER_THRESHOLD = 0.2  # r_inf por encima del cual una realizacion se considera
+                       # que desarrollo orden (no se quedo en el piso ~1/sqrt(N)).
+                       # Umbral del filtro de los mapas de tau (NO el de K_c).
+
+
+def min_sync_count(n):
+    """Cantidad minima de realizaciones que deben sincronizar (r_inf > 0.5) para
+    promediar tau en una celda. Es el 25% de n, con un piso estadistico de 3.
+    Asi el criterio escala con la cantidad de seeds: 12 -> 3, 50 -> 13."""
+    return max(3, int(np.ceil(MIN_SYNC_FRAC * n)))
+
+
 def run_one(N, K, topology, dt, tSim, seed, output,
             netSeed=None, p=None, v=None, dumpEvery=None, dumpPhases=False,
             muOmega=None, sigmaOmega=None):

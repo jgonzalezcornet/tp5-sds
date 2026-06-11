@@ -13,8 +13,8 @@ Estos valores son idénticos en los tres barridos (ver `run_complete.py`, `run_r
 - `N = 600` osciladores.
 - Frecuencias naturales gaussianas con `μ_ω = 1.0`, `σ_ω = 0.1`.
 - `dt = 0.001` (paso de integración RK4).
-- 12 realizaciones (`seed = 1000..1011`) por punto del barrido; las curvas son promedios y las barras de error son la desviación estándar entre realizaciones.
-- `τ` (tiempo de sincronización = llegada al estado estacionario): tiempo de establecimiento (settling time), primer instante tras el cual `r(t)` (suavizada) se mantiene dentro de ±0.02 de su valor de régimen. La ventana se adapta al transitorio de cada corrida en vez de usar un corte fijo. Sólo se promedia sobre realizaciones que sincronizan (`r_estacionario > 0.5`) y al menos 3 de las 12.
+- Realizaciones por punto del barrido: 12 (completa y aleatoria, `seed = 1000..1011`), 50 (anillo, `seed = 1000..1049`). Las curvas son promedios y las barras de error son la desviación estándar entre realizaciones.
+- `τ` (tiempo de sincronización = llegada al estado estacionario): tiempo de establecimiento (settling time), primer instante tras el cual `r(t)` (suavizada) se mantiene dentro de ±0.02 de su valor de régimen. La ventana se adapta al transitorio de cada corrida en vez de usar un corte fijo. Sólo se promedia sobre realizaciones que sincronizan (`r_estacionario > 0.5`), exigiendo al menos 3.
 - `r_estacionario`: promedio de `r(t)` sobre la ventana `[τ, t_f]` (es decir, desde el mismo `τ`).
 
 ## Acoplamiento crítico K_c
@@ -134,7 +134,7 @@ Barridos:
 - `p ∈ {1e-4, 2e-4, 5e-4, 1e-3, 2e-3, 5e-3, 0.01, 0.02, 0.05, 0.1}` — escala log, 10 valores en [1e-4, 1e-1] (rango fijado por el enunciado v2); cubre desde redes esparsas y fragmentadas (grado medio `〈k〉 = p·(N−1) ≈ 0.06` en p=1e-4) hasta `p = 0.1` (`〈k〉 ≈ 60`, ya bien conectada).
 - `K ∈ {1e-3, 3e-3, 0.01, 0.03, 0.1, 0.3, 1.0}` — escala log, alrededor y por encima de K_c.
 
-Tiempo de simulación `tSim = 50`, igual que la completa: en cuanto la red tenga una componente gigante densa la dinámica se parece a la completa.
+Tiempo de simulación `tSim = 100` (la completa usa 50): cuando la red tiene una componente gigante densa la dinámica se parece a la completa; el margen extra asegura el estado estacionario en las corridas marginales cerca de la transición.
 
 ### 2.1 `r(p)-k=0.1.png` — Corte a K = 0.1
 

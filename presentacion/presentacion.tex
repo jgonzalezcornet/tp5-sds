@@ -270,8 +270,8 @@
   \small
   \textbf{Protocolo}
   \begin{itemize}
-    \item 12 seeds por simulación
-    \item $t_{\mathrm{sim}}$: 50 s (completa, aleatoria), 1500 s (anillo)
+    \item Realizaciones: 12 (completa, aleatoria), 50 (anillo)
+    \item $t_{\mathrm{sim}}$: 50 s (completa), 100 s (aleatoria), 1500 s (anillo)
   \end{itemize}
 \end{frame}
 
@@ -286,7 +286,7 @@
   \begin{equation*}
     \tau = \min\Big\{ t : \max_{s \ge t} r(s) - \min_{s \ge t} r(s) \le 0.04 \Big\}
   \end{equation*}
-  {\footnotesize $\tau$: primer instante tras el cual $r(t)$ queda dentro de una banda de ancho $0.04$, es decir $\pm 0.02$.}
+  {\footnotesize $\tau$: primer instante a partir del cual $r(t)$ deja de variar ($\pm 0.02$).}
 
   \vspace{0.4cm}
 
@@ -294,7 +294,7 @@
   \begin{equation*}
     r_{\infty} = \frac{1}{M} \sum_{t_k \ge \tau} r(t_k)
   \end{equation*}
-  {\footnotesize promedio de $r$ sobre la ventana ya estable; $M$ = n\'umero de muestras con $t_k \ge \tau$.}
+  {\footnotesize promedio de $r$ sobre la ventana ya estable.}
   
 \end{frame}
 

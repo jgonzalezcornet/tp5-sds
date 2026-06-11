@@ -1,4 +1,4 @@
-"""Barrido (v, K) para red anillo. 12 seeds por par. tSim grande por transitorios largos."""
+"""Barrido (v, K) para red anillo. 50 seeds por par. tSim grande por transitorios largos."""
 from lib import OUT_ROOT, ensure_compiled, run_batch
 
 N = 600
@@ -9,7 +9,7 @@ MU_OMEGA = 1.0
 SIGMA_OMEGA = 0.1
 VS = list(range(1, 11))
 KS = [0.01, 0.03, 0.05, 0.1, 0.2, 0.3, 0.5, 1.0]
-SEEDS = list(range(1000, 1012))
+SEEDS = list(range(1000, 1050))
 
 OUT_DIR = OUT_ROOT / "ring_vK"
 
